@@ -1,0 +1,38 @@
+{
+  "background_color": "#ffffff",
+  "description": "Tablica na odlewni tłoków Mahle",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Tablica Odlewnia",
+  "orientation": "portrait",
+  "scope": "/",
+  "short_name": "tablica-odlewnia",
+  "start_url": "/",
+  "theme_color": "#000000",
+  "categories": [
+    "productivity"
+  ],
+  "screenshots": [
+    {
+      "src": "https://sfmoeu.netlify.app/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "description": "PWABuilder Home Screen"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://sfmoeu.netlify.app/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://sfmoeu.netlify.app/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "pl"
+}

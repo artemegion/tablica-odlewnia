@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="assets/icon.svg" />
+
+    <title>Tablica odlewnia</title>
+
+    <style>
+        :root {
+            --border-color: rgb(120, 120, 120);
+        }
+
+        /* dark theme */
+        body.dark-theme {
+            background-color: rgb(60, 60, 60);
+            color: rgb(250, 250, 250);
+        }
+
+        body.dark-theme .hour-bubble {
+            background-color: rgb(100, 100, 100);
+            color: rgb(255, 255, 255);
+
+            --border-color: rgb(120, 120, 120);
+        }
+
+        body.dark-theme .hour-bubble.of-this-shift {
+            background-color: black;
+        }
+
+        body.dark-theme input {
+            background-color: rgb(110, 110, 110);
+            color: white;
+
+            border-color: rgb(120, 120, 120);
+        }
+
+        body.dark-theme input:disabled {
+            background-color: rgb(80, 80, 80);
+            border-color: rgb(100, 100, 100);
+        }
+
+        /* html elements */
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+
+        @media screen and (min-width: 500px) {
+            body {
+                display: flex;
+                flex-direction: column;
+
+                justify-content: flex-start;
+                align-items: center;
+            }
+        }
+
+        input {
+            display: block;
+            box-sizing: border-box;
+
+            width: 0;
+
+            margin: 0;
+            padding: 0.5em;
+
+            border: 1px solid var(--border-color);
+        }
+
+        input:disabled {
+            border-color: rgb(200, 208, 219);
+            background-color: rgb(235, 238, 249);
+        }
+
+
+        /* flex lib */
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        .flex-col.centered {
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .flex-auto-gap {
+            gap: 1em;
+        }
+
+        .flex-row.centered {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flex-half {
+            flex-basis: 50%;
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+
+        .flex-q {
+            flex-basis: 25%;
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+
+        .flex-fill {
+            flex-basis: 100%;
+            flex-grow: 1;
+            flex-shrink: 1;
+        }
+
+        /* collapsible lib */
+        .collapsible {
+            padding-top: 0.25em;
+            padding-bottom: 0.25em;
+        }
+
+        .collapsible:before {
+            content: '\002b';
+            float: left;
+
+            font-weight: bold;
+
+            margin-right: 0.5em;
+        }
+
+        .collapsible.active:before {
+            content: '\2212';
+        }
+
+        .collapsible+.content {
+            max-height: 0px;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+        }
+
+        /* app styles */
+        .app-titlebar {
+            -webkit-user-select: none;
+            user-select: none;
+
+            margin-bottom: 1em;
+        }
+
+        .app-title {
+            margin-top: 0.5em;
+
+            text-align: center;
+            font-size: 1.4em;
+        }
+
+        .shift {
+            text-align: center;
+        }
+
+        .app-container {
+            padding-top: 1em;
+            padding-bottom: 5em;
+
+            margin-left: 1em;
+            margin-right: 1em;
+        }
+
+        @media screen and (min-width: 500px) {
+            .app-container {
+                width: 500px;
+            }
+        }
+
+        .data-row {
+            margin-top: 1em;
+        }
+
+        .hour-bubbles {
+            margin-top: 1em;
+        }
+
+        .hour-bubble {
+            -webkit-user-select: none;
+            user-select: none;
+
+            padding: 0.5em;
+
+            width: 1.1em;
+            height: 1.1em;
+            line-height: 1;
+
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hour-bubble:not(:first-child) {
+            margin-left: 1em;
+        }
+
+        .hour-bubble.of-this-shift {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container flex-col">
+        <div class="app-titlebar">
+            <div class="app-title">
+                <span>Tablica SFM</span>
+                <span id="theme-selector" style="float: right; font-size: 1.3em;">🌘</span>
+                <span style="float: left; font-size: 1.3em; opacity: 0;">🌘</span>
+            </div>
+            <div class="shift">Zmiana <span id="shift-this-week">?</span></div>
+        </div>
+        <div class="flex-row data-row">
+            <div class="flex-half">Takt</div>
+            <input data-cell-id="takt" data-cell-type="float" id="takt" class="flex-half" type="number" value="0.85" />
+        </div>
+
+        <div class="flex-col flex-fill">
+            <div class="flex-row hour-bubbles">
+                <div class="flex-row flex-half">
+                    <div class="hour-bubble _1">10</div>
+                    <div class="hour-bubble _2">18</div>
+                    <div class="hour-bubble _3">2</div>
+                </div>
+
+                <div class="flex-row flex-half">
+                    <div class="hour-bubble _1">14</div>
+                    <div class="hour-bubble _2">22</div>
+                    <div class="hour-bubble _3">6</div>
+                </div>
+            </div>
+
+            <div class="flex-row data-row">Cel 100%</div>
+            <div class="flex-row flex-auto-gap">
+                <input data-cell-id="cel-polowa" data-cell-type="int" id="cel-1" class="flex-half" type="number" value="565" />
+                <input data-cell-id="cel-koniec" data-cell-type="int" id="cel-2" class="flex-half" type="number" value="1025" />
+            </div>
+
+            <div class="flex-row data-row">W wózku</div>
+            <div class="flex-row flex-auto-gap">
+                <input data-cell-id="sztuki-we-wozku-polowa" data-cell-type="int" id="sztuki-1" class="flex-half" type="number" value="" />
+                <input data-cell-id="sztuki-we-wozku-koniec" data-cell-type="int" id="sztuki-2" class="flex-half" type="number" value="" />
+            </div>
+
+            <div class="flex-row data-row">Spływ narastająco</div>
+            <div class="flex-row flex-auto-gap">
+                <input disabled data-cell-id="splyw-narastajaco-polowa" data-cell-type="int" id="nar-1" class="flex-half" type="number" value="" />
+                <input disabled data-cell-id="splyw-narastajaco-koniec" data-cell-type="int" id="nar-2" class="flex-half" type="number" value="" />
+            </div>
+
+            <div class="flex-row data-row">Spływ z godziny</div>
+            <div class="flex-row flex-auto-gap">
+                <input disabled data-cell-id="splyw-z-godziny-polowa" data-cell-type="int" id="zgodz-1" class="flex-half" type="number" value="" />
+                <input disabled data-cell-id="splyw-z-godziny-koniec" data-cell-type="int" id="zgodz-2" class="flex-half" type="number" value="" />
+            </div>
+
+            <div class="flex-row data-row">Braki</div>
+            <div class="flex-row flex-auto-gap">
+                <input data-cell-id="braki-polowa" data-cell-type="int" id="braki-1" class="flex-half" type="number" value="8" />
+                <input data-cell-id="braki-koniec" data-cell-type="int" id="braki-2" class="flex-half" type="number" value="8" />
+            </div>
+
+            <div class="flex-row data-row">Czas strat</div>
+            <div class="flex-row flex-auto-gap">
+                <input disabled data-cell-id="czas-strat-polowa" data-cell-type="int" id="czas-strat-1" class="flex-half" type="number" value="" />
+                <div class="flex-row flex-half flex-auto-gap">
+                    <input disabled data-cell-id="czas-strat-koniec" data-cell-type="int" id="czas-strat-2" class="flex-half" type="number" value="" />
+                    <input disabled data-cell-id="czas-strat-suma" data-cell-type="int" id="czas-strat-suma" class="flex-half" type="number" value="" />
+                </div>
+            </div>
+
+            <div class="flex-row data-row">Czyszczenie i pokrywanie narzędzia</div>
+            <div class="flex-row flex-auto-gap">
+                <input data-cell-id="czyszczenie-b1-polowa" data-cell-type="int" id="czas-czyszczenie-b1-1" class="flex-q" type="number" value="20" />
+                <input data-cell-id="czyszczenie-b2-polowa" data-cell-type="int" id="czas-czyszczenie-b2-1" class="flex-q" type="number" value="20" />
+                <input data-cell-id="czyszczenie-b1-koniec" data-cell-type="int" id="czas-czyszczenie-b1-2" class="flex-q" type="number" value="20" />
+                <input data-cell-id="czyszczenie-b2-koniec" data-cell-type="int" id="czas-czyszczenie-b2-2" class="flex-q" type="number" value="20" />
+            </div>
+
+            <div class="collapsible flex-row data-row">Awaria / zmiana narzędzi</div>
+            <div class="content flex-row flex-auto-gap">
+                <input data-cell-id="awaria-b1-polowa" data-cell-type="int?" id="awaria-b1-polowa" class="flex-half" type="number" value="" />
+                <input data-cell-id="awaria-b2-polowa" data-cell-type="int?" id="awaria-b2-polowa" class="flex-half" type="number" value="" />
+                <input data-cell-id="awaria-b1-koniec" data-cell-type="int?" id="awaria-b1-koniec" class="flex-half" type="number" value="" />
+                <input data-cell-id="awaria-b2-koniec" data-cell-type="int?" id="awaria-b2-koniec" class="flex-half" type="number" value="" />
+            </div>
+
+            <div class="flex-row data-row">Strata prędkości</div>
+            <div class="flex-row flex-auto-gap">
+                <input disabled data-cell-id="strata-predkosci-b1-polowa" data-cell-type="int" id="czas-str-pred-b1-1" class="flex-half" type="number" value="" />
+                <input disabled data-cell-id="strata-predkosci-b2-polowa" data-cell-type="int" id="czas-str-pred-b2-1" class="flex-half" type="number" value="" />
+                <input disabled data-cell-id="strata-predkosci-b1-koniec" data-cell-type="int" id="czas-str-pred-b1-2" class="flex-half" type="number" value="" />
+                <input disabled data-cell-id="strata-predkosci-b2-koniec" data-cell-type="int" id="czas-str-pred-b2-2" class="flex-half" type="number" value="" />
+            </div>
+
+            <div class="flex-row data-row">Brakujące sztuki do 100%</div>
+            <input disabled data-cell-id="brakujace-sztuki-do-100" data-cell-type="int" id="brak-do-100" style="width: 100%" type="number" value="" />
+
+            <div class="flex-row data-row">OEU</div>
+            <input disabled data-cell-id="oeu" data-cell-type="int" id="oeu" style="width: 100%" type="number" value="" />
+
+            <div class="flex-row data-row">% braków</div>
+            <input disabled data-cell-id="procent-brakow" data-cell-type="float" id="procent-brakow" style="width: 100%" type="number" value="" />
+        </div>
+    </div>
+
+    <!-- pwa web worker -->
+    <script>
+        if (typeof navigator.serviceWorker !== 'undefined') {
+            navigator.serviceWorker.register('sw.js')
+        }
+    </script>
+
+    <!-- app -->
+    <script>
+        const cells = {
+            'splyw-narastajaco-polowa': {
+                deps: ['sztuki-we-wozku-polowa', 'braki-polowa'],
+
+                update() {
+                    this.setValue(cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-polowa'].getValue())
+                }
+            },
+
+            'splyw-narastajaco-koniec': {
+                deps: ['sztuki-we-wozku-koniec', 'braki-koniec'],
+
+                update() {
+                    this.setValue(cells['sztuki-we-wozku-koniec'].getValue() + cells['braki-koniec'].getValue())
+                }
+            },
+
+            'splyw-z-godziny-polowa': {
+                deps: ['splyw-narastajaco-polowa'],
+
+                update() {
+                    this.setValue(cells['splyw-narastajaco-polowa'].getValue());
+                }
+            },
+
+            'splyw-z-godziny-koniec': {
+                deps: ['sztuki-we-wozku-polowa', 'sztuki-we-wozku-koniec', 'braki-koniec'],
+
+                update() {
+                    this.setValue(cells['sztuki-we-wozku-koniec'].getValue() - cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-koniec'].getValue());
+                }
+            },
+
+            'czas-strat-polowa': {
+                deps: ['cel-polowa', 'splyw-z-godziny-polowa', 'takt'],
+
+                update() {
+                    this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-polowa'].getValue()) * cells['takt'].getValue()));
+                }
+            },
+
+            'czas-strat-koniec': {
+                deps: ['cel-polowa', 'splyw-z-godziny-koniec', 'takt'],
+
+                update() {
+                    this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-koniec'].getValue()) * cells['takt'].getValue()));
+                }
+            },
+
+            'czas-strat-suma': {
+                deps: ['czas-strat-polowa', 'czas-strat-koniec'],
+
+                update() {
+                    this.setValue(cells['czas-strat-polowa'].getValue() + cells['czas-strat-koniec'].getValue());
+                }
+            },
+
+            'strata-predkosci-b1-polowa': {
+                deps: ['czyszczenie-b1-polowa', 'czyszczenie-b2-polowa', 'czas-strat-polowa',
+                    'awaria-b1-polowa', 'awaria-b2-polowa'],
+
+                update() {
+                    console.log("326 " + cells['awaria-b1-polowa'].getValue());
+
+                    this.setValue(
+                        Math.floor(
+                            (
+                                cells['czas-strat-polowa'].getValue()
+                                -
+                                cells['czyszczenie-b1-polowa'].getValue()
+                                -
+                                cells['czyszczenie-b2-polowa'].getValue()
+                                -
+                                cells['awaria-b1-polowa'].getValue()
+                                -
+                                cells['awaria-b2-polowa'].getValue()
+                            )
+                            /
+                            2
+                        )
+                    );
+                }
+            },
+
+            'strata-predkosci-b2-polowa': {
+                deps: ['czyszczenie-b1-polowa', 'czyszczenie-b2-polowa', 'czas-strat-polowa',
+                    'awaria-b1-polowa', 'awaria-b2-polowa'],
+
+                update() {
+                    this.setValue(
+                        Math.floor(
+                            (
+                                cells['czas-strat-polowa'].getValue()
+                                -
+                                cells['czyszczenie-b1-polowa'].getValue()
+                                -
+                                cells['czyszczenie-b2-polowa'].getValue()
+                                -
+                                cells['awaria-b1-polowa'].getValue()
+                                -
+                                cells['awaria-b2-polowa'].getValue()
+                            )
+                            /
+                            2
+                        )
+                    );
+                }
+            },
+
+            'strata-predkosci-b1-koniec': {
+                deps: ['czyszczenie-b1-koniec', 'czyszczenie-b2-koniec', 'czas-strat-koniec',
+                    'awaria-b1-koniec', 'awaria-b2-koniec'],
+
+                update() {
+                    this.setValue(
+                        Math.floor(
+                            (
+                                cells['czas-strat-koniec'].getValue()
+                                -
+                                cells['czyszczenie-b1-koniec'].getValue()
+                                -
+                                cells['czyszczenie-b2-koniec'].getValue()
+                                -
+                                cells['awaria-b1-koniec'].getValue()
+                                -
+                                cells['awaria-b2-koniec'].getValue()
+                            )
+                            /
+                            2
+                        )
+                    );
+                }
+            },
+
+            'strata-predkosci-b2-koniec': {
+                deps: ['czyszczenie-b1-koniec', 'czyszczenie-b2-koniec', 'czas-strat-koniec',
+                    'awaria-b1-koniec', 'awaria-b2-koniec'],
+
+                update() {
+                    this.setValue(
+                        Math.floor(
+                            (
+                                cells['czas-strat-koniec'].getValue()
+                                -
+                                cells['czyszczenie-b1-koniec'].getValue()
+                                -
+                                cells['czyszczenie-b2-koniec'].getValue()
+                                -
+                                cells['awaria-b1-koniec'].getValue()
+                                -
+                                cells['awaria-b2-koniec'].getValue()
+                            )
+                            /
+                            2
+                        )
+                    );
+                }
+            },
+
+            'brakujace-sztuki-do-100': {
+                deps: ['cel-koniec', 'splyw-narastajaco-koniec'],
+
+                update() {
+                    this.setValue(cells['cel-koniec'].getValue() - cells['splyw-narastajaco-koniec'].getValue());
+                }
+            },
+
+            'oeu': {
+                deps: ['splyw-narastajaco-koniec', 'takt'],
+
+                update() {
+                    this.setValue(Math.round(cells['splyw-narastajaco-koniec'].getValue() / 2 * cells['takt'].getValue() / 480 * 100));
+                }
+            },
+
+            'procent-brakow': {
+                deps: ['braki-polowa', 'braki-koniec', 'splyw-narastajaco-koniec'],
+
+                update() {
+                    this.setValue(
+                        (
+                            (cells['braki-polowa'].getValue() + cells['braki-koniec'].getValue())
+                            /
+                            cells['splyw-narastajaco-koniec'].getValue()
+                            *
+                            100
+                        ).toFixed(2)
+                    )
+                }
+            }
+        };
+
+        function cell_ensureInitialized(cells, cellId) {
+            if (typeof cells[cellId].elem != 'object') {
+                cells[cellId].elem = document.querySelector(`[data-cell-id="${cellId}"]`);
+            }
+
+            if (typeof cells[cellId].setValue != 'function') {
+                cells[cellId].setValue = cell_setValue.bind(cells[cellId]);
+            }
+
+            if (typeof cells[cellId].getValue != 'function') {
+                cells[cellId].getValue = cell_getValue.bind(cells[cellId]);
+            }
+
+            if (typeof cells[cellId].verifyDeps != 'function') {
+                cells[cellId].verifyDeps = cell_verifyDeps.bind(cells[cellId], cells);
+            }
+        }
+
+        function cell_setValue(val) {
+            this.elem.value = val;
+            this.elem.dispatchEvent(new Event('change', { bubbles: false, cancelable: false, composed: false }));
+        }
+
+        function cell_getValue() {
+            if (this.valueType === 'int') {
+                return parseInt(this.elem.value);
+            } else if (this.valueType === 'float') {
+                return parseFloat(this.elem.value);
+            } else if (this.valueType === 'int?') {
+                return this.elem.value === "" ? 0 : parseInt(this.elem.value);
+            } else return this.elem.value;
+        }
+
+        function cell_verifyDeps(cells) {
+            for (let depId of this.deps) {
+                if (cells[depId].valueType === 'string' || cells[depId].valueType === 'int?') {
+                    continue;
+                }
+                else if (cells[depId].valueType === 'int') {
+                    if (isNaN(parseInt(cells[depId].getValue()))) {
+                        return false;
+                    }
+                }
+                else if (cells[depId].valueType === 'float') {
+                    if (isNaN(parseFloat(cells[depId].getValue()))) {
+                        return false;
+                    }
+                }
+                else {
+                    console.warn(`cell type ${cells[depId].valueType} is not supported`);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /* collapsible lib */
+        (() => {
+            let collapsibles = document.getElementsByClassName('collapsible');
+
+            for (let i = 0; i < collapsibles.length; i++) {
+                collapsibles[i].addEventListener('click', () => {
+                    collapsibles[i].classList.toggle('active');
+
+                    let content = collapsibles[i].nextElementSibling;
+
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = '32px';
+                    }
+                });
+            }
+        })();
+
+        /* cells */
+        (() => {
+            document.querySelectorAll('[data-cell-id]').forEach(dataCellElem => {
+                let cellId = dataCellElem.getAttribute('data-cell-id');
+                let cellType = dataCellElem.getAttribute('data-cell-type');
+
+                if (typeof cells[cellId] === 'object') {
+                    // set the cell's id if its not defined
+                    if (typeof cells[cellId].valueType !== 'string') {
+                        cells[cellId].valueType = cellType;
+                    }
+                } else {
+                    // add the cell if its not manually defined
+                    cells[cellId] = {
+                        elem: dataCellElem,
+                        valueType: cellType
+                    };
+                }
+            });
+
+            for (let cellId of Object.getOwnPropertyNames(cells)) {
+                cell_ensureInitialized(cells, cellId);
+
+                if (typeof cells[cellId].deps == 'object' && cells[cellId].deps.length > 0) {
+                    for (let depId of cells[cellId].deps) {
+                        cell_ensureInitialized(cells, depId);
+
+                        cells[depId].elem.addEventListener('change', () => {
+                            if (cells[cellId].verifyDeps() === true) cells[cellId].update();
+                            return false;
+                        });
+                    }
+                }
+            }
+        })();
+
+        /* current shift */
+        (() => {
+            let date = new Date();
+            let hours = date.getHours();
+
+            let shiftThisDay = 0, shiftThisWeek = 0;
+
+            if (hours >= 6 && hours < 14) {
+                shiftThisDay = 1;
+                document.querySelectorAll('.hour-bubble._1').forEach(elem => elem.classList.add('of-this-shift'));
+            }
+            else if (hours >= 14 && hours < 22) {
+                shiftThisDay = 2;
+                document.querySelectorAll('.hour-bubble._2').forEach(elem => elem.classList.add('of-this-shift'));
+            } else {
+                shiftThisDay = 3;
+                document.querySelectorAll('.hour-bubble._3').forEach(elem => elem.classList.add('of-this-shift'));
+            }
+
+            // 0 is sunday, 1 is monday
+            switch (date.getDay()) {
+                case 1:
+                    shiftThisWeek = 0 + shiftThisDay;
+                    break;
+                case 2:
+                    shiftThisWeek = 3 + shiftThisDay;
+                    break;
+                case 3:
+                    shiftThisWeek = 6 + shiftThisDay;
+                    break;
+                case 4:
+                    shiftThisWeek = 9 + shiftThisDay;
+                    break;
+                case 5:
+                    shiftThisWeek = 12 + shiftThisDay;
+                    break;
+                case 6:
+                    shiftThisWeek = 15 + shiftThisDay;
+                    break;
+                case 0:
+                    shiftThisWeek = 18 + shiftThisDay;
+                    break;
+            }
+
+            document.getElementById('shift-this-week').innerText = shiftThisWeek;
+        })();
+
+        /* theme-selector */
+        (() => {
+            let themeSelectorElem = document.getElementById('theme-selector');
+
+            let storedTheme = localStorage.getItem('app-theme');
+
+            if (storedTheme === '☀️') {
+                themeSelectorElem.innerText = '🌘';
+                document.body.classList.remove('dark-theme');
+            } else if (storedTheme === '🌘') {
+                themeSelectorElem.innerText = '☀️';
+                document.body.classList.add('dark-theme');
+            }
+
+            themeSelectorElem.addEventListener('click', () => {
+                if (themeSelectorElem.innerText === '☀️') {
+                    themeSelectorElem.innerText = '🌘';
+                    document.body.classList.remove('dark-theme');
+
+                    localStorage.setItem('app-theme', '☀️');
+                } else {
+                    themeSelectorElem.innerText = '☀️';
+                    document.body.classList.add('dark-theme');
+
+                    localStorage.setItem('app-theme', '🌘');
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

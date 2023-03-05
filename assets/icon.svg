@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="0 0 500 500" width="500" height="500" xmlns="http://www.w3.org/2000/svg">
+  <g transform="matrix(0.923796, 0, 0, 0.910711, 20.652847, 23.909945)">
+    <title>tablica</title>
+    <rect x="31.768" y="28.675" width="156.53" height="439.19" style="stroke: rgb(0, 0, 0); fill: rgb(135, 170, 193); stroke-width: 20px;">
+      <title>lewo</title>
+    </rect>
+    <rect x="187.607" y="28.648" width="277.157" height="439.217" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;">
+      <title>prawo</title>
+    </rect>
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 39.254 117.257 L 464.764 117.257">
+      <title>divider</title>
+    </path>
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 32.606 204.59 L 458.116 204.59">
+      <title>divider</title>
+    </path>
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 31.768 291.923 L 457.278 291.923">
+      <title>divider</title>
+    </path>
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 34.263 379.257 L 459.774 379.257">
+      <title>divider</title>
+    </path>
+  </g>
+</svg>
