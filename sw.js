@@ -1,6 +1,6 @@
 const GITHUB_REPO_PATH = '/tablica-odlewnia';
 const APP_PREFIX = 'tblcdlwn_';
-const APP_VERSION = '0.0.1';
+const APP_VERSION = '0.0.2';
 
 const URLS = [
     `${GITHUB_REPO_PATH}/`,
