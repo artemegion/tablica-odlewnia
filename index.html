@@ -5,7 +5,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="manifest" href="manifest.json" />
+    <link rel="canonical" href="https://artemegion.github.io/tablica-odlewnia/" />
+    <link rel="manifest" href="/tablica-odlewnia/manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" />
 
     <title>Tablica odlewnia</title>
@@ -340,7 +341,10 @@
     <!-- pwa web worker -->
     <script>
         if (typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.register('sw.js')
+            navigator.serviceWorker.register(
+                '/tablica-odlewnia/sw.js',
+                { scope: '/tablica-odlewnia/' }
+            );
         }
     </script>
 

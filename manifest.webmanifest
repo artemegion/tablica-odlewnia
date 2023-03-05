@@ -1,0 +1,26 @@
+{
+  "name": "Tablica odlewnia",
+  "short_name": "Tablica odlewnia",
+  "description": "Łatwo wypełnij tablicę na odlewni tłoków Mahle",
+  "scope": "/tablica-odlewnia/",
+  "start_url": "/tablica-odlewnia/",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/tablica-odlewnia/assets/icon_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/tablica-odlewnia/assets/icon_512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/tablica-odlewnia/assets/icon.svg",
+      "type": "image/svg+xml"
+    }
+  ]
+}

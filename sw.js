@@ -1,47 +1,47 @@
-// This is the "Offline page" service worker
+const GITHUB_REPO_PATH = '/tablica-odlewnia';
+const APP_PREFIX = 'tblcdlwn_';
+const APP_VERSION = '0.0.1';
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
+const URLS = [
+    `${GITHUB_REPO_PATH}/`,
+    `${GITHUB_REPO_PATH}/index.html`,
+    `${GITHUB_REPO_PATH}/assets/icon_192.png`,
+    `${GITHUB_REPO_PATH}/assets/icon_512.png`,
+    `${GITHUB_REPO_PATH}/assets/icon.svg`
+];
 
-const CACHE = "sfmoeupage";
-
-// TODO: replace the following with the correct offline fallback page i.e.: const offlineFallbackPage = "offline.html";
-const offlineFallbackPage = "index.html";
-
-self.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "SKIP_WAITING") {
-        self.skipWaiting();
-    }
-});
-
-self.addEventListener('install', async (event) => {
-    event.waitUntil(
-        caches.open(CACHE)
-            .then((cache) => cache.add(offlineFallbackPage))
+self.addEventListener('install', (e) => {
+    e.waitUntil(
+        (async () => {
+            const cache = await caches.open(APP_PREFIX + APP_VERSION);
+            await cache.addAll(URLS);
+        })()
     );
 });
 
-if (workbox.navigationPreload.isSupported()) {
-    workbox.navigationPreload.enable();
-}
+self.addEventListener('fetch', (e) => {
+    e.respondWith(
+        (async () => {
+            const r = await caches.match(APP_PREFIX + APP_VERSION);
+            if (r) return r;
 
-self.addEventListener('fetch', (event) => {
-    if (event.request.mode === 'navigate') {
-        event.respondWith((async () => {
-            try {
-                const preloadResp = await event.preloadResponse;
+            const response = await fetch(e.request);
+            const cache = await caches.open(APP_PREFIX + APP_VERSION);
+            await cache.put(e.request, response.clone());
 
-                if (preloadResp) {
-                    return preloadResp;
-                }
+            return response;
+        })()
+    );
+});
 
-                const networkResp = await fetch(event.request);
-                return networkResp;
-            } catch (error) {
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        (async () => {
+            var cacheKeys = await caches.keys();
 
-                const cache = await caches.open(CACHE);
-                const cachedResp = await cache.match(offlineFallbackPage);
-                return cachedResp;
+            for (let key of cacheKeys) {
+                await caches.delete(key);
             }
-        })());
-    }
+        })()
+    );
 });
