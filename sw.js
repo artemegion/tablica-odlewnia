@@ -1,6 +1,6 @@
 const GITHUB_REPO_PATH = '/tablica-odlewnia';
 const APP_PREFIX = 'tblcdlwn_';
-const APP_VERSION = '0.0.2';
+const APP_VERSION = 2;
 
 const URLS = [
     `${GITHUB_REPO_PATH}/`,
@@ -37,10 +37,9 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('activate', (e) => {
     e.waitUntil(
         (async () => {
-            var cacheKeys = await caches.keys();
-
-            for (let key of cacheKeys) {
-                await caches.delete(key);
+            // delete caches for previous versions of the app
+            for (let ver = 0; ver < APP_VERSION; ver++) {
+                await caches.delete(APP_PREFIX + APP_VERSION);
             }
         })()
     );
