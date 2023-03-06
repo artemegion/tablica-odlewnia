@@ -408,103 +408,57 @@
             },
 
             'strata-predkosci-b1-polowa': {
-                deps: ['czyszczenie-b1-polowa', 'czyszczenie-b2-polowa', 'czas-strat-polowa',
-                    'awaria-b1-polowa', 'awaria-b2-polowa'],
+                deps: ['czyszczenie-b1-polowa', 'czas-strat-polowa', 'awaria-b1-polowa'],
 
                 update() {
-                    console.log("326 " + cells['awaria-b1-polowa'].getValue());
-
                     this.setValue(
-                        Math.floor(
-                            (
-                                cells['czas-strat-polowa'].getValue()
-                                -
-                                cells['czyszczenie-b1-polowa'].getValue()
-                                -
-                                cells['czyszczenie-b2-polowa'].getValue()
-                                -
-                                cells['awaria-b1-polowa'].getValue()
-                                -
-                                cells['awaria-b2-polowa'].getValue()
-                            )
-                            /
-                            2
-                        )
+                        Math.round(cells['czas-strat-polowa'].getValue() / 2)
+                        -
+                        cells['czyszczenie-b1-polowa'].getValue()
+                        -
+                        cells['awaria-b1-polowa'].getValue()
                     );
                 }
             },
 
             'strata-predkosci-b2-polowa': {
-                deps: ['czyszczenie-b1-polowa', 'czyszczenie-b2-polowa', 'czas-strat-polowa',
-                    'awaria-b1-polowa', 'awaria-b2-polowa'],
+                deps: ['czyszczenie-b2-polowa', 'czas-strat-polowa', 'awaria-b2-polowa'],
 
                 update() {
                     this.setValue(
-                        Math.floor(
-                            (
-                                cells['czas-strat-polowa'].getValue()
-                                -
-                                cells['czyszczenie-b1-polowa'].getValue()
-                                -
-                                cells['czyszczenie-b2-polowa'].getValue()
-                                -
-                                cells['awaria-b1-polowa'].getValue()
-                                -
-                                cells['awaria-b2-polowa'].getValue()
-                            )
-                            /
-                            2
-                        )
+                        Math.floor(cells['czas-strat-polowa'].getValue() / 2)
+                        -
+                        cells['czyszczenie-b2-polowa'].getValue()
+                        -
+                        cells['awaria-b2-polowa'].getValue()
                     );
                 }
             },
 
             'strata-predkosci-b1-koniec': {
-                deps: ['czyszczenie-b1-koniec', 'czyszczenie-b2-koniec', 'czas-strat-koniec',
-                    'awaria-b1-koniec', 'awaria-b2-koniec'],
+                deps: ['czyszczenie-b1-koniec', 'czas-strat-koniec', 'awaria-b1-koniec'],
 
                 update() {
                     this.setValue(
-                        Math.floor(
-                            (
-                                cells['czas-strat-koniec'].getValue()
-                                -
-                                cells['czyszczenie-b1-koniec'].getValue()
-                                -
-                                cells['czyszczenie-b2-koniec'].getValue()
-                                -
-                                cells['awaria-b1-koniec'].getValue()
-                                -
-                                cells['awaria-b2-koniec'].getValue()
-                            )
-                            /
-                            2
-                        )
+                        Math.floor(cells['czas-strat-koniec'].getValue() / 2)
+                        -
+                        cells['czyszczenie-b1-koniec'].getValue()
+                        -
+                        cells['awaria-b1-koniec'].getValue()
                     );
                 }
             },
 
             'strata-predkosci-b2-koniec': {
-                deps: ['czyszczenie-b1-koniec', 'czyszczenie-b2-koniec', 'czas-strat-koniec',
-                    'awaria-b1-koniec', 'awaria-b2-koniec'],
+                deps: ['czyszczenie-b2-koniec', 'czas-strat-koniec', 'awaria-b2-koniec'],
 
                 update() {
                     this.setValue(
-                        Math.floor(
-                            (
-                                cells['czas-strat-koniec'].getValue()
-                                -
-                                cells['czyszczenie-b1-koniec'].getValue()
-                                -
-                                cells['czyszczenie-b2-koniec'].getValue()
-                                -
-                                cells['awaria-b1-koniec'].getValue()
-                                -
-                                cells['awaria-b2-koniec'].getValue()
-                            )
-                            /
-                            2
-                        )
+                        Math.round(cells['czas-strat-koniec'].getValue() / 2)
+                        -
+                        cells['czyszczenie-b2-koniec'].getValue()
+                        -
+                        cells['awaria-b2-koniec'].getValue()
                     );
                 }
             },
