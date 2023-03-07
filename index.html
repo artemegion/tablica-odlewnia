@@ -372,209 +372,6 @@
 
     <!-- app -->
     <script>
-        const cells = {
-            'splyw-narastajaco-polowa': {
-                deps: ['sztuki-we-wozku-polowa', 'braki-polowa'],
-
-                update() {
-                    this.setValue(cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-polowa'].getValue())
-                }
-            },
-
-            'splyw-narastajaco-koniec': {
-                deps: ['sztuki-we-wozku-koniec', 'braki-koniec'],
-
-                update() {
-                    this.setValue(cells['sztuki-we-wozku-koniec'].getValue() + cells['braki-koniec'].getValue())
-                }
-            },
-
-            'splyw-z-godziny-polowa': {
-                deps: ['splyw-narastajaco-polowa'],
-
-                update() {
-                    this.setValue(cells['splyw-narastajaco-polowa'].getValue());
-                }
-            },
-
-            'splyw-z-godziny-koniec': {
-                deps: ['sztuki-we-wozku-polowa', 'sztuki-we-wozku-koniec', 'braki-koniec'],
-
-                update() {
-                    this.setValue(cells['sztuki-we-wozku-koniec'].getValue() - cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-koniec'].getValue());
-                }
-            },
-
-            'czas-strat-polowa': {
-                deps: ['cel-polowa', 'splyw-z-godziny-polowa', 'takt'],
-
-                update() {
-                    this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-polowa'].getValue()) * cells['takt'].getValue()));
-                }
-            },
-
-            'czas-strat-koniec': {
-                deps: ['cel-polowa', 'splyw-z-godziny-koniec', 'takt'],
-
-                update() {
-                    this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-koniec'].getValue()) * cells['takt'].getValue()));
-                }
-            },
-
-            'czas-strat-suma': {
-                deps: ['czas-strat-polowa', 'czas-strat-koniec'],
-
-                update() {
-                    this.setValue(cells['czas-strat-polowa'].getValue() + cells['czas-strat-koniec'].getValue());
-                }
-            },
-
-            'strata-predkosci-b1-polowa': {
-                deps: ['czyszczenie-b1-polowa', 'czas-strat-polowa', 'awaria-b1-polowa'],
-
-                update() {
-                    this.setValue(
-                        Math.round(cells['czas-strat-polowa'].getValue() / 2)
-                        -
-                        cells['czyszczenie-b1-polowa'].getValue()
-                        -
-                        cells['awaria-b1-polowa'].getValue()
-                    );
-                }
-            },
-
-            'strata-predkosci-b2-polowa': {
-                deps: ['czyszczenie-b2-polowa', 'czas-strat-polowa', 'awaria-b2-polowa'],
-
-                update() {
-                    this.setValue(
-                        Math.floor(cells['czas-strat-polowa'].getValue() / 2)
-                        -
-                        cells['czyszczenie-b2-polowa'].getValue()
-                        -
-                        cells['awaria-b2-polowa'].getValue()
-                    );
-                }
-            },
-
-            'strata-predkosci-b1-koniec': {
-                deps: ['czyszczenie-b1-koniec', 'czas-strat-koniec', 'awaria-b1-koniec'],
-
-                update() {
-                    this.setValue(
-                        Math.floor(cells['czas-strat-koniec'].getValue() / 2)
-                        -
-                        cells['czyszczenie-b1-koniec'].getValue()
-                        -
-                        cells['awaria-b1-koniec'].getValue()
-                    );
-                }
-            },
-
-            'strata-predkosci-b2-koniec': {
-                deps: ['czyszczenie-b2-koniec', 'czas-strat-koniec', 'awaria-b2-koniec'],
-
-                update() {
-                    this.setValue(
-                        Math.round(cells['czas-strat-koniec'].getValue() / 2)
-                        -
-                        cells['czyszczenie-b2-koniec'].getValue()
-                        -
-                        cells['awaria-b2-koniec'].getValue()
-                    );
-                }
-            },
-
-            'brakujace-sztuki-do-100': {
-                deps: ['cel-koniec', 'splyw-narastajaco-koniec'],
-
-                update() {
-                    this.setValue(cells['cel-koniec'].getValue() - cells['splyw-narastajaco-koniec'].getValue());
-                }
-            },
-
-            'oeu': {
-                deps: ['splyw-narastajaco-koniec', 'takt'],
-
-                update() {
-                    this.setValue(Math.round(cells['splyw-narastajaco-koniec'].getValue() / 2 * cells['takt'].getValue() / 480 * 100));
-                }
-            },
-
-            'procent-brakow': {
-                deps: ['braki-polowa', 'braki-koniec', 'splyw-narastajaco-koniec'],
-
-                update() {
-                    this.setValue(
-                        (
-                            (cells['braki-polowa'].getValue() + cells['braki-koniec'].getValue())
-                            /
-                            cells['splyw-narastajaco-koniec'].getValue()
-                            *
-                            100
-                        ).toFixed(2)
-                    )
-                }
-            }
-        };
-
-        function cell_ensureInitialized(cells, cellId) {
-            if (typeof cells[cellId].elem != 'object') {
-                cells[cellId].elem = document.querySelector(`[data-cell-id="${cellId}"]`);
-            }
-
-            if (typeof cells[cellId].setValue != 'function') {
-                cells[cellId].setValue = cell_setValue.bind(cells[cellId]);
-            }
-
-            if (typeof cells[cellId].getValue != 'function') {
-                cells[cellId].getValue = cell_getValue.bind(cells[cellId]);
-            }
-
-            if (typeof cells[cellId].verifyDeps != 'function') {
-                cells[cellId].verifyDeps = cell_verifyDeps.bind(cells[cellId], cells);
-            }
-        }
-
-        function cell_setValue(val) {
-            this.elem.value = val;
-            this.elem.dispatchEvent(new Event('change', { bubbles: false, cancelable: false, composed: false }));
-        }
-
-        function cell_getValue() {
-            if (this.valueType === 'int') {
-                return parseInt(this.elem.value);
-            } else if (this.valueType === 'float') {
-                return parseFloat(this.elem.value);
-            } else if (this.valueType === 'int?') {
-                return this.elem.value === "" ? 0 : parseInt(this.elem.value);
-            } else return this.elem.value;
-        }
-
-        function cell_verifyDeps(cells) {
-            for (let depId of this.deps) {
-                if (cells[depId].valueType === 'string' || cells[depId].valueType === 'int?') {
-                    continue;
-                }
-                else if (cells[depId].valueType === 'int') {
-                    if (isNaN(parseInt(cells[depId].getValue()))) {
-                        return false;
-                    }
-                }
-                else if (cells[depId].valueType === 'float') {
-                    if (isNaN(parseFloat(cells[depId].getValue()))) {
-                        return false;
-                    }
-                }
-                else {
-                    console.warn(`cell type ${cells[depId].valueType} is not supported`);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         /* collapsible lib */
         (() => {
             let collapsibles = document.getElementsByClassName('collapsible');
@@ -596,6 +393,209 @@
 
         /* cells */
         (() => {
+            const cells = {
+                'splyw-narastajaco-polowa': {
+                    deps: ['sztuki-we-wozku-polowa', 'braki-polowa'],
+
+                    update() {
+                        this.setValue(cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-polowa'].getValue())
+                    }
+                },
+
+                'splyw-narastajaco-koniec': {
+                    deps: ['sztuki-we-wozku-koniec', 'braki-koniec'],
+
+                    update() {
+                        this.setValue(cells['sztuki-we-wozku-koniec'].getValue() + cells['braki-koniec'].getValue())
+                    }
+                },
+
+                'splyw-z-godziny-polowa': {
+                    deps: ['splyw-narastajaco-polowa'],
+
+                    update() {
+                        this.setValue(cells['splyw-narastajaco-polowa'].getValue());
+                    }
+                },
+
+                'splyw-z-godziny-koniec': {
+                    deps: ['sztuki-we-wozku-polowa', 'sztuki-we-wozku-koniec', 'braki-koniec'],
+
+                    update() {
+                        this.setValue(cells['sztuki-we-wozku-koniec'].getValue() - cells['sztuki-we-wozku-polowa'].getValue() + cells['braki-koniec'].getValue());
+                    }
+                },
+
+                'czas-strat-polowa': {
+                    deps: ['cel-polowa', 'splyw-z-godziny-polowa', 'takt'],
+
+                    update() {
+                        this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-polowa'].getValue()) * cells['takt'].getValue()));
+                    }
+                },
+
+                'czas-strat-koniec': {
+                    deps: ['cel-polowa', 'splyw-z-godziny-koniec', 'takt'],
+
+                    update() {
+                        this.setValue(Math.round((cells['cel-polowa'].getValue() - cells['splyw-z-godziny-koniec'].getValue()) * cells['takt'].getValue()));
+                    }
+                },
+
+                'czas-strat-suma': {
+                    deps: ['czas-strat-polowa', 'czas-strat-koniec'],
+
+                    update() {
+                        this.setValue(cells['czas-strat-polowa'].getValue() + cells['czas-strat-koniec'].getValue());
+                    }
+                },
+
+                'strata-predkosci-b1-polowa': {
+                    deps: ['czyszczenie-b1-polowa', 'czas-strat-polowa', 'awaria-b1-polowa'],
+
+                    update() {
+                        this.setValue(
+                            Math.round(cells['czas-strat-polowa'].getValue() / 2)
+                            -
+                            cells['czyszczenie-b1-polowa'].getValue()
+                            -
+                            cells['awaria-b1-polowa'].getValue()
+                        );
+                    }
+                },
+
+                'strata-predkosci-b2-polowa': {
+                    deps: ['czyszczenie-b2-polowa', 'czas-strat-polowa', 'awaria-b2-polowa'],
+
+                    update() {
+                        this.setValue(
+                            Math.floor(cells['czas-strat-polowa'].getValue() / 2)
+                            -
+                            cells['czyszczenie-b2-polowa'].getValue()
+                            -
+                            cells['awaria-b2-polowa'].getValue()
+                        );
+                    }
+                },
+
+                'strata-predkosci-b1-koniec': {
+                    deps: ['czyszczenie-b1-koniec', 'czas-strat-koniec', 'awaria-b1-koniec'],
+
+                    update() {
+                        this.setValue(
+                            Math.floor(cells['czas-strat-koniec'].getValue() / 2)
+                            -
+                            cells['czyszczenie-b1-koniec'].getValue()
+                            -
+                            cells['awaria-b1-koniec'].getValue()
+                        );
+                    }
+                },
+
+                'strata-predkosci-b2-koniec': {
+                    deps: ['czyszczenie-b2-koniec', 'czas-strat-koniec', 'awaria-b2-koniec'],
+
+                    update() {
+                        this.setValue(
+                            Math.round(cells['czas-strat-koniec'].getValue() / 2)
+                            -
+                            cells['czyszczenie-b2-koniec'].getValue()
+                            -
+                            cells['awaria-b2-koniec'].getValue()
+                        );
+                    }
+                },
+
+                'brakujace-sztuki-do-100': {
+                    deps: ['cel-koniec', 'splyw-narastajaco-koniec'],
+
+                    update() {
+                        this.setValue(cells['cel-koniec'].getValue() - cells['splyw-narastajaco-koniec'].getValue());
+                    }
+                },
+
+                'oeu': {
+                    deps: ['splyw-narastajaco-koniec', 'takt'],
+
+                    update() {
+                        this.setValue(Math.round(cells['splyw-narastajaco-koniec'].getValue() / 2 * cells['takt'].getValue() / 480 * 100));
+                    }
+                },
+
+                'procent-brakow': {
+                    deps: ['braki-polowa', 'braki-koniec', 'splyw-narastajaco-koniec'],
+
+                    update() {
+                        this.setValue(
+                            (
+                                (cells['braki-polowa'].getValue() + cells['braki-koniec'].getValue())
+                                /
+                                cells['splyw-narastajaco-koniec'].getValue()
+                                *
+                                100
+                            ).toFixed(2)
+                        )
+                    }
+                }
+            };
+
+            function cell_ensureInitialized(cells, cellId) {
+                if (typeof cells[cellId].elem != 'object') {
+                    cells[cellId].elem = document.querySelector(`[data-cell-id="${cellId}"]`);
+                }
+
+                if (typeof cells[cellId].setValue != 'function') {
+                    cells[cellId].setValue = cell_setValue.bind(cells[cellId]);
+                }
+
+                if (typeof cells[cellId].getValue != 'function') {
+                    cells[cellId].getValue = cell_getValue.bind(cells[cellId]);
+                }
+
+                if (typeof cells[cellId].verifyDeps != 'function') {
+                    cells[cellId].verifyDeps = cell_verifyDeps.bind(cells[cellId], cells);
+                }
+            }
+
+            function cell_setValue(val) {
+                this.elem.value = val;
+                this.elem.dispatchEvent(new Event('change', { bubbles: false, cancelable: false, composed: false }));
+            }
+
+            function cell_getValue() {
+                if (this.valueType === 'int') {
+                    return parseInt(this.elem.value);
+                } else if (this.valueType === 'float') {
+                    return parseFloat(this.elem.value);
+                } else if (this.valueType === 'int?') {
+                    return this.elem.value === "" ? 0 : parseInt(this.elem.value);
+                } else return this.elem.value;
+            }
+
+            function cell_verifyDeps(cells) {
+                for (let depId of this.deps) {
+                    if (cells[depId].valueType === 'string' || cells[depId].valueType === 'int?') {
+                        continue;
+                    }
+                    else if (cells[depId].valueType === 'int') {
+                        if (isNaN(parseInt(cells[depId].getValue()))) {
+                            return false;
+                        }
+                    }
+                    else if (cells[depId].valueType === 'float') {
+                        if (isNaN(parseFloat(cells[depId].getValue()))) {
+                            return false;
+                        }
+                    }
+                    else {
+                        console.warn(`cell type ${cells[depId].valueType} is not supported`);
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
             document.querySelectorAll('[data-cell-id]').forEach(dataCellElem => {
                 let cellId = dataCellElem.getAttribute('data-cell-id');
                 let cellType = dataCellElem.getAttribute('data-cell-type');
@@ -649,6 +649,12 @@
                 document.querySelectorAll('.hour-bubble._3').forEach(elem => elem.classList.add('of-this-shift'));
             }
 
+            let day = date.getDay();
+            if (shiftThisDay == 3 && date.getHours() >= 0 && date.getHours() < 6) {
+                day -= 1;
+                if (day < 0) day = 6;
+            }
+
             // 0 is sunday, 1 is monday
             switch (date.getDay()) {
                 case 1:
@@ -674,7 +680,10 @@
                     break;
             }
 
-            document.getElementById('shift-this-week').innerText = shiftThisWeek;
+            let onejan = new Date(date.getFullYear(), 0, 1);
+            let week = Math.ceil((((date.getTime() - onejan.getTime()) / 86400000) + onejan.getDay() + 1) / 7);
+
+            document.getElementById('shift-this-week').innerText = `${shiftThisWeek} / ${week}`;
         })();
 
         /* theme-selector */
