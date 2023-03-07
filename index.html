@@ -13,36 +13,18 @@
 
     <style>
         :root {
-            --border-color: rgb(120, 120, 120);
-        }
+            --background-color: rgb(60, 60, 60);
+            --color: rgb(250, 250, 250);
 
-        /* dark theme */
-        body.dark-theme {
-            background-color: rgb(60, 60, 60);
-            color: rgb(250, 250, 250);
-        }
+            --field-border-color: rgb(120, 120, 120);
+            --field-bg-color: rgb(100, 100, 100);
+            --field-color: rgb(250, 250, 250);
 
-        body.dark-theme .hour-bubble {
-            background-color: rgb(100, 100, 100);
-            color: rgb(255, 255, 255);
+            --field-border-color-disabled: rgb(100, 100, 100);
+            --field-bg-color-disabled: rgb(80, 80, 80);
+            --field-color-disabled: rgb(250, 250, 250);
 
-            --border-color: rgb(120, 120, 120);
-        }
-
-        body.dark-theme .hour-bubble.of-this-shift {
-            background-color: black;
-        }
-
-        body.dark-theme input {
-            background-color: rgb(110, 110, 110);
-            color: white;
-
-            border-color: rgb(120, 120, 120);
-        }
-
-        body.dark-theme input:disabled {
-            background-color: rgb(80, 80, 80);
-            border-color: rgb(100, 100, 100);
+            --hour-bubble-bg-color-active: rgb(30, 30, 30);
         }
 
         /* html elements */
@@ -58,6 +40,24 @@
         body {
             box-sizing: border-box;
             font-family: sans-serif;
+
+            background-color: var(--background-color);
+            color: var(--color);
+        }
+
+        body[data-app-theme="0"] {
+            --background-color: rgb(255, 255, 255);
+            --color: rgb(0, 0, 0);
+
+            --field-border-color: rgb(180, 180, 180);
+            --field-bg-color: rgb(240, 240, 240);
+            --field-color: rgb(0, 0, 0);
+
+            --field-border-color-disabled: rgb(180, 180, 180);
+            --field-bg-color-disabled: rgb(220, 220, 220);
+            --field-color-disabled: rgb(0, 0, 0);
+
+            --hour-bubble-bg-color-active: rgb(210, 210, 210);
         }
 
         @media screen and (min-width: 500px) {
@@ -79,12 +79,29 @@
             margin: 0;
             padding: 0.5em;
 
-            border: 1px solid var(--border-color);
+            /* fix text being slightly misaligned */
+            padding-top: calc(0.5em + 2px);
+
+            background-color: var(--field-bg-color);
+            color: var(--field-color);
+
+            border-style: solid;
+            border-width: 0;
+            border-bottom-width: 4px;
+            border-color: var(--field-border-color);
+
+            transition: border-color 0.1s ease-out;
         }
 
         input:disabled {
-            border-color: rgb(200, 208, 219);
-            background-color: rgb(235, 238, 249);
+            background-color: var(--field-bg-color-disabled);
+            border-color: var(--field-border-color-disabled);
+        }
+
+        input:focus {
+            outline: none;
+            /* background-color: var(--field-bg-color-focus); */
+            border-bottom-color: aquamarine;
         }
 
 
@@ -213,7 +230,12 @@
             height: 1.1em;
             line-height: 1;
 
-            border: 1px solid var(--border-color);
+            background-color: var(--field-bg-color);
+            color: var(--field-color);
+
+            border: 1px solid var(--field-border-color);
+            border-color: var(--field-border-color);
+
             border-radius: 50%;
 
             display: flex;
@@ -228,8 +250,8 @@
         }
 
         .hour-bubble.of-this-shift {
-            background-color: black;
-            color: white;
+            background-color: var(--hour-bubble-bg-color-active);
+            color: var(--field-color);
         }
     </style>
 </head>
@@ -657,30 +679,43 @@
 
         /* theme-selector */
         (() => {
-            let themeSelectorElem = document.getElementById('theme-selector');
+            const themeSelectorElem = document.getElementById('theme-selector');
+            const themes = [
+                {
+                    name: 'light',
+                    icon: '☀️'
+                },
+                {
+                    name: 'dark',
+                    icon: '🌘'
+                }
+            ];
 
-            let storedTheme = localStorage.getItem('app-theme');
+            function setThemeId(id) {
+                if (id < 0) { id = themes.length - 1; }
+                else if (id > themes.length - 1) { id = 0; }
 
-            if (storedTheme === '☀️') {
-                themeSelectorElem.innerText = '🌘';
-                document.body.classList.remove('dark-theme');
-            } else if (storedTheme === '🌘') {
-                themeSelectorElem.innerText = '☀️';
-                document.body.classList.add('dark-theme');
+                themeSelectorElem.innerText = themes[id].icon;
+                document.body.setAttribute('data-app-theme', id);
+
+                localStorage.setItem('app-theme', id);
             }
 
-            themeSelectorElem.addEventListener('click', () => {
-                if (themeSelectorElem.innerText === '☀️') {
-                    themeSelectorElem.innerText = '🌘';
-                    document.body.classList.remove('dark-theme');
+            function getThemeId() {
+                let appThemeId = parseInt(localStorage.getItem('app-theme'));
 
-                    localStorage.setItem('app-theme', '☀️');
-                } else {
-                    themeSelectorElem.innerText = '☀️';
-                    document.body.classList.add('dark-theme');
-
-                    localStorage.setItem('app-theme', '🌘');
+                if (isNaN(appThemeId)) {
+                    appThemeId = 0;
+                    setThemeId(0);
                 }
+
+                return appThemeId;
+            }
+
+            setThemeId(getThemeId());
+
+            themeSelectorElem.addEventListener('click', () => {
+                setThemeId(getThemeId() + 1);
             });
         })();
     </script>
