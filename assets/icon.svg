@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg viewBox="0 0 500 500" width="500" height="500" xmlns="http://www.w3.org/2000/svg">
-  <g transform="matrix(0.923796, 0, 0, 0.910711, 20.652847, 23.909945)">
+  <g transform="matrix(1.154745, 0, 0, 1.138389, -36.683937, -32.612583)" style="">
     <title>tablica</title>
-    <rect x="31.768" y="28.675" width="156.53" height="439.19" style="stroke: rgb(0, 0, 0); fill: rgb(135, 170, 193); stroke-width: 20px;">
+    <rect x="31.768" y="28.675" width="156.53" height="439.19" style="stroke: rgb(0, 0, 0); fill: rgb(135, 170, 193); stroke-width: 0px;">
       <title>lewo</title>
     </rect>
-    <rect x="187.607" y="28.648" width="277.157" height="439.217" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;">
+    <rect x="187.607" y="28.648" width="277.157" height="439.217" style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 0px;">
       <title>prawo</title>
     </rect>
-    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 39.254 117.257 L 464.764 117.257">
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 31.97 117.257 L 464.764 117.257">
       <title>divider</title>
     </path>
-    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 32.606 204.59 L 458.116 204.59">
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 32.606 204.59 L 464.28 204.59">
       <title>divider</title>
     </path>
-    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 31.768 291.923 L 457.278 291.923">
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 31.768 291.923 L 464.562 291.923">
       <title>divider</title>
     </path>
-    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 34.263 379.257 L 459.774 379.257">
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 32.022 379.257 L 464.257 379.257">
+      <title>divider</title>
+    </path>
+    <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0); stroke-width: 20px;" d="M 187.517 28.648 L 186.667 467.865">
       <title>divider</title>
     </path>
   </g>
