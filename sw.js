@@ -9,62 +9,78 @@ const GH_COMMIT_REQ = '/latest-commit';
 const GH_REPO_API_URL = 'https://api.github.com/repos/artemegion/tablica-odlewnia';
 const GH_PAGE_URL = 'https://artemegion.github.io/tablica-odlewnia';
 
-self.addEventListener('install', (e) => {
+async function onInstall(e) {
     try {
-        e.waitUntil(setCachedCommitSha('9150aeaaf68534b3b1dced9c72c8a11537181b01'));
-    } catch (e) { console.log(e); }
+        let sha = await fetchLatestCommitSha();
+
+        if (sha === undefined) {
+            // sets the cached commit sha to a default value if none exists but doesn't change it if it does
+            await getCachedCommitSha();
+        } else {
+            if (!await hasFilesForCachedSha()) {
+                await fetchFilesForCachedSha(false);
+                await clearCachedFiles(true);
+            }
+        }
+    } catch {
+
+    }
+}
+
+async function onActivate(e) {
+    await clearCachedFiles(true);
+
+    if (!await hasFilesForCachedSha()) {
+        fetchFilesForCachedSha(false);
+    }
+}
+
+async function onFetch(e) {
+    const filePath = requestUrlToFilePath(e.request.url);
+
+    if (filePath === undefined) {
+        return fetch(e.request);
+    } else {
+        if (!await hasFilesForCachedSha()) {
+            await fetchFilesForCachedSha(false);
+        }
+
+        const file = await getCachedFile(filePath);
+        if (file === undefined) {
+            await fetchFilesForCachedSha(true);
+        }
+
+        if (file === undefined) {
+            return new Response('No assets in cache, could not download assets.', { status: 418 });
+        } else {
+            return file;
+        }
+    }
+}
+
+self.addEventListener('install', (e) => {
+    e.waitUntil(onInstall(e));
 });
 
 self.addEventListener('activate', (e) => {
-    e.waitUntil((async () => {
-        try {
-            let sha = await getCachedCommitSha();
-            const newSha = await fetchLatestCommitSha();
-
-            if (newSha === undefined) {
-                // no way to check for app update
-            } else {
-                if (sha !== newSha) {
-                    setCachedCommitSha(newSha);
-                    sha = newSha;
-
-                    await fetchFiles();
-                }
-            }
-        } catch (e) { console.log(e); }
-    })());
+    e.waitUntil(onActivate(e));
 });
 
 self.addEventListener('fetch', (e) => {
-    e.respondWith((async () => {
-        try {
-            const reqPath = requestUrlToFilePath(e.request.url);
-
-            if (reqPath === undefined) {
-                return fetch(e.request);
-            }
-            else {
-                const cached = await getCachedFile(reqPath);
-                if (cached === undefined) {
-                    await fetchFiles();
-                    cached = await getCachedFile(reqPath);
-                }
-
-                // file is not in cache and could not download the file
-                if (cached === undefined) {
-                    // TODO: better error presentation
-                    return new Response('<h1>This is bad</h1>', { status: 500, statusText: 'This is bad' });
-                }
-
-                return cached;
-            }
-        } catch (e) { console.log(e); }
-    })())
+    e.respondWith(onFetch(e));
 });
 
 /**
  * 
- * @param {string} sha 
+ * @returns {Promise<boolean>}
+ */
+async function hasFilesForCachedSha() {
+    const sha = await getCachedCommitSha();
+    return await caches.has(sha);
+}
+
+/**
+ * 
  * @param {string} path
  * @returns {Promise<Response | undefined>}
  */
@@ -77,46 +93,62 @@ async function getCachedFile(path) {
     return cached;
 }
 
-async function fetchFiles() {
-    const sha = await getCachedCommitSha();
-
+/**
+ * Clears cached files, optionally keeping files for the cached version.
+ * @param {boolean} [keepCachedShaFiles] whether to keep files for the cached version
+ */
+async function clearCachedFiles(keepCachedShaFiles = true) {
     for (let key of await caches.keys()) {
-        if (key === GH_COMMIT_CACHE_NAME || key === sha) continue;
+        if (key === GH_COMMIT_CACHE_NAME) continue;
+        if (keepCachedShaFiles && key === await getCachedCommitSha()) continue;
+
         await caches.delete(key);
     }
+}
 
-    // get repo files
-    // request files from GitHub Pages site by their path
+/**
+ * fetches file paths for all app files
+ * @param {string} [path] 
+ * @returns {Promise<string[]>}
+ */
+async function fetchFilePaths(path = '') {
+    let contentsResponse = await fetch(GH_REPO_API_URL + '/contents/' + path);
+    let contents = await contentsResponse.json();
 
-    /**
-     * 
-     * @param {string} [path] 
-     * @returns {Promise<string[]>}
-     */
-    async function fetchFilePaths(path = '') {
-        let contentsResponse = await fetch(GH_REPO_API_URL + '/contents/' + path);
-        let contents = await contentsResponse.json();
+    let arr = [];
 
-        let arr = [];
+    for (let content of contents) {
+        if (content.type === 'dir') {
+            arr.push(...await fetchFilePaths(content.path));
+        } else if (content.type === 'file') {
+            arr.push('/' + content.path);
+        }
+    }
 
-        for (let content of contents) {
-            if (content.type === 'dir') {
-                arr.push(...await fetchFilePaths(content.path));
-            } else if (content.type === 'file') {
-                arr.push('/' + content.path);
+    return arr;
+}
+
+/**
+ * fetches all app files
+ * @param {boolean} [incremental] only download files that are not already downloaded
+ */
+async function fetchFilesForCachedSha(incremental = true) {
+    const sha = await fetchLatestCommitSha();
+    const filePaths = await fetchFilePaths();
+
+    if (sha === undefined) {
+        // no internet connection/bad internet connection/server unavailable
+    } else {
+        const cache = await caches.open(sha);
+
+        for (let filePath of filePaths) {
+            if (!incremental || await cache.match(filePath) === undefined) {
+                let response = await fetch(GH_PAGE_URL + filePath);
+                await cache.put(filePath, response);
             }
         }
 
-        return arr;
-    }
-
-    let filePaths = await fetchFilePaths();
-
-    const cache = await caches.open(await getCachedCommitSha());
-
-    for (let filePath of filePaths) {
-        let response = await fetch(GH_PAGE_URL + filePath);
-        cache.put(filePath, response);
+        await setCachedCommitSha(sha);
     }
 }
 
@@ -168,7 +200,7 @@ async function getCachedCommitSha() {
  */
 async function fetchLatestCommitSha() {
     try {
-        let commitResponse = await fetchWithTimeout(GH_REPO_API_URL + '/commits/main', 3000, {
+        let commitResponse = await fetch(GH_REPO_API_URL + '/commits/main', {
             headers: {
                 'Accept': 'application/json'
             }
@@ -180,7 +212,9 @@ async function fetchLatestCommitSha() {
         if (typeof commitSha !== 'string') {
             return undefined;
         }
-    } catch {
+
+        return commitSha;
+    } catch (e) {
         return undefined;
     }
 }
