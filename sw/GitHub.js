@@ -1,7 +1,7 @@
 const GitHub = {
     username: 'artemegion',
     repository: 'tablica-odlewnia',
-    branch: 'main',
+    branch: 'deploy',
 
     getApiUrl() {
         return `https://api.github.com/repos/${this.username}/${this.repository}`;
