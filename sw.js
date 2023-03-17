@@ -1,46 +1,53 @@
-const GITHUB_REPO_PATH = '/tablica-odlewnia';
-const APP_PREFIX = 'tblcdlwn_';
-const APP_VERSION = 4;
+importScripts(
+    '/tablica-odlewnia/sw/utils.js',
+    '/tablica-odlewnia/sw/GitHub.js',
+    '/tablica-odlewnia/sw/WorkerCache.js');
 
-const URLS = [
-    `${GITHUB_REPO_PATH}/`,
-    `${GITHUB_REPO_PATH}/index.html`,
-    `${GITHUB_REPO_PATH}/assets/icon_192.png`,
-    `${GITHUB_REPO_PATH}/assets/icon_512.png`,
-    `${GITHUB_REPO_PATH}/assets/icon.svg`
-];
+const MyWorker = {
+    async onInstall(e) {
+        const sha = await GitHub.fetchLatestCommit();
 
-self.addEventListener('install', (e) => {
-    e.waitUntil(
-        (async () => {
-            const cache = await caches.open(APP_PREFIX + APP_VERSION);
-            await cache.addAll(URLS);
-        })()
-    );
-});
+        if (sha === undefined) {
+            await WorkerCache.getCachedCommit();
+        } else {
+            if (!await WorkerCache.hasFilesForCommit(sha)) {
+                let fetchedFiles = await GitHub.fetchFiles(false);
+                await WorkerCache.setFilesForCommit(sha, fetchedFiles, false);
+                await WorkerCache.setCachedCommit(sha);
+            }
+        }
+    },
 
-self.addEventListener('fetch', (e) => {
-    e.respondWith(
-        (async () => {
-            const r = await caches.match(APP_PREFIX + APP_VERSION);
-            if (r) return r;
+    async onActivate(e) {
+        await WorkerCache.deleteCachedFiles(true);
+    },
 
-            const response = await fetch(e.request);
-            const cache = await caches.open(APP_PREFIX + APP_VERSION);
-            await cache.put(e.request, response.clone());
+    async onFetch(e) {
+        const filePath = requestUrlToFilePath(e.request.url);
+
+        if (filePath === undefined) {
+            return fetch(e.request);
+        } else {
+            if (!await WorkerCache.hasFilesForCachedCommit(filePath)) {
+                await this.fetchAndCacheFiles();
+            }
+
+            const response = await WorkerCache.getFileForCachedCommit(filePath);
+            if (response === undefined) {
+                console.error('Could not download and cache a file.', e.request.url, filePath);
+                return undefined;
+            }
 
             return response;
-        })()
-    );
-});
+        }
+    },
 
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
-        (async () => {
-            // delete caches for previous versions of the app
-            for (let ver = 0; ver < APP_VERSION; ver++) {
-                await caches.delete(APP_PREFIX + APP_VERSION);
-            }
-        })()
-    );
-});
+    async fetchAndCacheFiles() {
+        const files = await GitHub.fetchFiles(true, await WorkerCache.getFilesForCachedCommit());
+        await WorkerCache.setFilesForCachedCommit(files, true);
+    }
+};
+
+self.addEventListener('install', e => { e.waitUntil(MyWorker.onInstall(e)) });
+self.addEventListener('activate', e => { e.waitUntil(MyWorker.onActivate(e)) });
+self.addEventListener('fetch', e => { e.respondWith(MyWorker.onFetch(e)) });
