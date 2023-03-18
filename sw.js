@@ -1,7 +1,8 @@
 importScripts(
     '/tablica-odlewnia/sw/utils.js',
     '/tablica-odlewnia/sw/GitHub.js',
-    '/tablica-odlewnia/sw/WorkerCache.js');
+    '/tablica-odlewnia/sw/WorkerCache.js',
+    '/tablica-odlewnia/sw/updates.js');
 
 const MyWorker = {
     async onInstall(e) {
@@ -29,7 +30,7 @@ const MyWorker = {
             return fetch(e.request);
         } else {
             if (!await WorkerCache.hasFilesForCachedCommit(filePath)) {
-                await this.fetchAndCacheFiles();
+                await this.fetchAndCacheFilesForCachedCommit();
             }
 
             const response = await WorkerCache.getFileForCachedCommit(filePath);
@@ -42,9 +43,17 @@ const MyWorker = {
         }
     },
 
-    async fetchAndCacheFiles() {
+    async fetchAndCacheFilesForCachedCommit() {
         const files = await GitHub.fetchFiles(true, await WorkerCache.getFilesForCachedCommit());
         await WorkerCache.setFilesForCachedCommit(files, true);
+    },
+
+    async updateCachedFiles() {
+        const latestCommit = await GitHub.fetchLatestCommit();
+        const files = await GitHub.fetchFiles();
+        await WorkerCache.setFilesForCommit(latestCommit, files, false);
+        await WorkerCache.setCachedCommit(latestCommit);
+        await WorkerCache.deleteCachedFiles(true);
     }
 };
 
