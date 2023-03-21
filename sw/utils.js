@@ -7,7 +7,7 @@
 function requestUrlToFilePath(url) {
     let pURL = new URL(url);
 
-    if (pURL.hostname !== GitHub.username + '.github.io' || pURL.pathname.startsWith('/' + GitHub.repository)) {
+    if (pURL.hostname === (GitHub.username + '.github.io') && pURL.pathname.startsWith('/' + GitHub.repository)) {
         pURL.pathname = pURL.pathname.slice(GitHub.repository.length + 1);
         if (pURL.pathname === '/') pURL.pathname = '/index.html';
 
