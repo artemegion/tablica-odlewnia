@@ -13,6 +13,9 @@
     --field-color-disabled: rgb(250, 250, 250);
 
     --hour-bubble-bg-color-active: rgb(30, 30, 30);
+
+    --top-notif-background-color: rgb(100, 100, 100);
+    --top-notif-color: rgb(250, 250, 250);
 }
 
 /* html elements */
@@ -48,6 +51,9 @@ body[data-app-theme="0"] {
     --field-color-disabled: rgb(0, 0, 0);
 
     --hour-bubble-bg-color-active: rgb(210, 210, 210);
+
+    --top-notif-background-color: rgb(240, 240, 240);
+    --top-notif-color: rgb(0, 0, 0);
 }
 
 @media screen and (min-width: 500px) {
@@ -169,6 +175,19 @@ input:focus {
 }
 
 /* app styles */
+.top-notif {
+    -webkit-user-select: none;
+    user-select: none;
+
+    box-sizing: border-box;
+    padding: 0.5em;
+
+    background-color: var(--top-notif-background-color);
+    color: var(--top-notif-color);
+
+    text-align: center;
+}
+
 .app-titlebar {
     -webkit-user-select: none;
     user-select: none;

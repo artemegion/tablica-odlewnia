@@ -21,19 +21,19 @@
         });
     }, DEBUG === true ? 100 : 5000);
 
-    const appUpdatedIconElem = document.getElementById('app-updated-icon');
-    appUpdatedIconElem.addEventListener('click', onAppUpdatedIconClicked);
+    const appUpdateNotifElem = document.getElementById('app-update-notif');
+    appUpdateNotifElem.addEventListener('click', onAppUpdatedIconClicked);
 
     rpcHideAppUpdated();
 
     function rpcShowAppUpdated() {
-        appUpdatedIconElem.style.opacity = '1';
-        appUpdatedIconElem.style.pointerEvents = 'all';
+        appUpdateNotifElem.style.display = 'block';
+        appUpdateNotifElem.style.pointerEvents = 'all';
     }
 
     function rpcHideAppUpdated() {
-        appUpdatedIconElem.style.opacity = '0.0';
-        appUpdatedIconElem.style.pointerEvents = 'none';
+        appUpdateNotifElem.style.display = 'none';
+        appUpdateNotifElem.style.pointerEvents = 'none';
     }
 
     function onAppUpdatedIconClicked() {
