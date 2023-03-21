@@ -3,11 +3,6 @@
     await navigator.serviceWorker.ready;
 
     navigator.serviceWorker.addEventListener('message', ev => {
-        if (ev.data?.command === 'show-app-updated') {
-            appUpdatedIconElem.style.opacity = '1.0';
-            appUpdatedIconElem.style.pointerEvents = 'all';
-        }
-
         if (typeof ev.data !== 'object' || typeof ev.data.command !== 'string') return;
 
         switch (ev.data.command) {
@@ -24,7 +19,7 @@
         navigator.serviceWorker.controller?.postMessage({
             command: 'check-for-updates'
         });
-    }, 1500);
+    }, DEBUG === true ? 100 : 5000);
 
     const appUpdatedIconElem = document.getElementById('app-updated-icon');
     appUpdatedIconElem.addEventListener('click', onAppUpdatedIconClicked);

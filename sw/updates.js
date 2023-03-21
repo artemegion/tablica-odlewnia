@@ -9,6 +9,10 @@
 
                 if (latestCommit !== cachedCommit) {
                     await MyWorker.updateCachedFiles();
+
+                    for (let client of await self.clients.matchAll()) {
+                        client.postMessage({ command: 'show-app-updated' });
+                    }
                 }
                 break;
         }

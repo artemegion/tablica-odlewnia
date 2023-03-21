@@ -1,3 +1,22 @@
+/**
+ * Cells are input fields with a data-cell-id and data-cell-type attributes,
+ * their value can be automatically updated if any cell set as dependency changes its value.
+ * 
+ * Cells are defined in the constant `cells` with the value of data-cell-id attr as the key.
+ * The deps field specifies other cells to observe for value change. Update function will
+ * be called when any one of the dep cells changes their value and all of them pass validation.
+ * 
+ * Only cells that require the update function need to be defined here, input-only cells only need
+ * to have the data-cell-id and data-cell-type attributes.
+ * 
+ * Validation checks if the value of the field is convertible to the type specified in data-cell-id attribute.
+ * Supported types are:
+ * + int - value must not return NaN when passed to parseInt
+ * + int? - value must either not return NaN when passed to parseInt or be equal to "" or "-"
+ * + float - value must not return NaN when passed to parseFloat
+ * + string - always validates
+ */
+
 (() => {
     const cells = {
         'splyw-narastajaco-polowa': {
@@ -146,6 +165,11 @@
         }
     };
 
+    /**
+     * ensures that a cell is properly initialized
+     * @param {{ [cellId: string]: any }} cells 
+     * @param {string} cellId 
+     */
     function cell_ensureInitialized(cells, cellId) {
         if (typeof cells[cellId].elem != 'object') {
             cells[cellId].elem = document.querySelector(`[data-cell-id="${cellId}"]`);
@@ -181,8 +205,12 @@
 
     function cell_verifyDeps(cells) {
         for (let depId of this.deps) {
-            if (cells[depId].valueType === 'string' || cells[depId].valueType === 'int?') {
+            if (cells[depId].valueType === 'string') {
                 continue;
+            }
+            else if (cells[depId].valueType === 'int?') {
+                let val = cells[depId].getValue();
+                if (isNaN(parseInt(val)) && !(val === '' || val === '-')) return false;
             }
             else if (cells[depId].valueType === 'int') {
                 if (isNaN(parseInt(cells[depId].getValue()))) {
