@@ -1,6 +1,12 @@
+/**
+ * GitHub API wrappers
+ */
 const GitHub = {
+    /** @type {string} username of the page's repository owner */
     username: 'artemegion',
+    /** @type {string} repository name */
     repository: 'tablica-odlewnia',
+    /** @type {string} branch used to fetch file list, should be the branch used to deploy the GitHub page */
     branch: 'deploy',
 
     getApiUrl() {
@@ -8,7 +14,9 @@ const GitHub = {
     },
 
     getPageUrl() {
-        return `https://${this.username}.github.io/${this.repository}`;
+        return DEBUG
+            ? `http://127.0.0.1:3000/${this.repository}`
+            : `https://${this.username}.github.io/${this.repository}`;
     },
 
     /**
@@ -17,20 +25,49 @@ const GitHub = {
      * @returns {Promise<string[]>}
      */
     async fetchFilePaths(path = '') {
-        let response = await fetch(`${this.getApiUrl()}/contents/${path}?ref=${this.branch}`);
-        let responseArr = await response.json();
+        if (DEBUG === true) {
+            return [
+                '/sw.js',
+                '/README.md',
+                '/manifest.webmanifest',
+                '/LICENSE',
+                '/index.html',
+                '/.gitignore',
+                '/sw/WorkerCache.js',
+                '/sw/utils.js',
+                '/sw/updates.js',
+                '/sw/GitHub.js',
+                '/styles/index.css',
+                '/js/updates.js',
+                '/js/theme-selector.js',
+                '/js/current-shift.js',
+                '/js/collapsible.js',
+                '/js/cells.js',
+                '/js/force-slash-at-end-of-url.js',
+                '/assets/icon.svg',
+                '/assets/icon_512.png',
+                '/assets/icon_192.png'
+            ];
+        } else {
+            try {
+                let response = await fetch(`${this.getApiUrl()}/contents/${path}?ref=${this.branch}`);
+                let responseArr = await response.json();
 
-        let filePaths = [];
+                let filePaths = [];
 
-        for (let fileMeta of responseArr) {
-            if (fileMeta.type === 'dir') {
-                filePaths.push(...await this.fetchFilePaths(fileMeta.path));
-            } else if (fileMeta.type === 'file') {
-                filePaths.push('/' + fileMeta.path);
+                for (let fileMeta of responseArr) {
+                    if (fileMeta.type === 'dir') {
+                        filePaths.push(...await this.fetchFilePaths(fileMeta.path));
+                    } else if (fileMeta.type === 'file') {
+                        filePaths.push('/' + fileMeta.path);
+                    }
+                }
+
+                return filePaths;
+            } catch {
+                return [];
             }
         }
-
-        return filePaths;
     },
 
     /**
@@ -39,28 +76,56 @@ const GitHub = {
      * @returns {Promise<{ [key: string]: Response }>}
      */
     async fetchFiles(incremental = false, ...paths) {
-        let responses = {};
-        let filePaths = incremental ? (await GitHub.fetchFilePaths()).filter(path => paths.indexOf(path) < 0) : paths.length > 0 ? paths : await GitHub.fetchFilePaths();
+        try {
+            let responses = {};
+            let filePaths = incremental ? (await GitHub.fetchFilePaths()).filter(path => paths.indexOf(path) < 0) : paths.length > 0 ? paths : await GitHub.fetchFilePaths();
 
-        for (let filePath of filePaths) {
-            let response = await fetch(`${this.getPageUrl()}${filePath}`, {
-                headers: {
-                    'Accept': '*/*'
-                }
-            });
-            responses[filePath] = response;
+            for (let filePath of filePaths) {
+
+                let response = await fetch(`${this.getPageUrl()}${filePath}`, {
+                    headers: {
+                        'Accept': '*/*'
+                    },
+                    redirect: 'follow'
+                });
+
+                // Not all browsers support the Response.body stream, so fall back to reading the entire body into memory as a blob.
+                const body = await ('body' in response ?
+                    Promise.resolve(response.body) :
+                    response.blob());
+
+                responses[filePath] = new Response(body, {
+                    headers: response.headers,
+                    status: 200,
+                    statusText: 'OK',
+                });
+            }
+
+            return responses;
+        } catch {
+            return {};
         }
-
-        return responses;
     },
 
     async fetchLatestCommit() {
-        let response = await fetch(`${this.getApiUrl()}/commits/${this.branch}`, {
-            headers: {
-                'Accept': 'application/vnd.github.sha'
+        if (DEBUG === true) {
+            try {
+                return await (await fetch('debug-latest-commit.txt')).text();
+            } catch {
+                return undefined;
             }
-        });
+        } else {
+            try {
+                let response = await fetch(`${this.getApiUrl()}/commits/${this.branch}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github.sha'
+                    }
+                });
 
-        return await response.text();
+                return await response.text();
+            } catch {
+                return undefined;
+            }
+        }
     }
 };
