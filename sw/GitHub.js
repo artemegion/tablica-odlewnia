@@ -43,6 +43,7 @@ const GitHub = {
                 '/js/current-shift.js',
                 '/js/collapsible.js',
                 '/js/cells.js',
+                '/js/force-slash-at-end-of-url.js',
                 '/assets/icon.svg',
                 '/assets/icon_512.png',
                 '/assets/icon_192.png'
