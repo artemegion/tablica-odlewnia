@@ -1,3 +1,5 @@
+@import "./expandable.css";
+
 :root {
     --background-color: rgb(60, 60, 60);
     --color: rgb(250, 250, 250);
