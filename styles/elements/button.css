@@ -1,0 +1,22 @@
+button {
+    display: block;
+    box-sizing: border-box;
+
+    padding: 0.5em;
+    padding-top: 0.7em;
+
+    /* fix the button having different height then the input due to input bottom border */
+    padding-top: calc(0.7em + 2px);
+    padding-bottom: calc(0.5em + 4px);
+
+    margin: 0;
+
+    line-height: 1;
+
+    background-color: var(--field-bg-color);
+    color: var(--field-color);
+
+    font-size: var(--font-size);
+
+    border: none;
+}

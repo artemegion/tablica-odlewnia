@@ -1,0 +1,7 @@
+a {
+    text-decoration: none;
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-color: var(--field-border-color-focus);
+    color: var(--color);
+}

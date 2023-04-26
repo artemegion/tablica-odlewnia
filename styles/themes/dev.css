@@ -1,0 +1,12 @@
+body[data-app-theme="dev"] {
+    --color-1: #4b93bd;
+    --color-2: #458AB4;
+    --color-3: #52A4D3;
+    --color-4: #5fa8d3;
+
+    --text-color: rgb(250, 250, 250);
+    --text-color-dim: #c5e1f1;
+
+    --accent-color: #6eb8e2;
+    --accent-color-dim: rgb(102, 167, 145);
+}

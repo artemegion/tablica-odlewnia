@@ -1,0 +1,36 @@
+input[type="radio"] {
+    display: none;
+}
+
+input[type="radio"]+label {
+    -webkit-user-select: none;
+    user-select: none;
+
+    display: block;
+    box-sizing: border-box;
+
+    margin: 0;
+
+    padding: 0.5em;
+    padding-top: 0.7em;
+    padding-bottom: calc(0.5em + 2px);
+
+    line-height: 1;
+
+    background-color: var(--field-bg-color);
+    color: var(--field-color);
+
+    font-size: var(--font-size);
+    text-align: center;
+
+    border-style: solid;
+    border-width: 0;
+    border-bottom-width: 4px;
+    border-color: var(--field-border-color);
+
+    transition: border-color 0.1s ease-out;
+}
+
+input[type="radio"]:checked+label {
+    border-bottom-color: var(--field-border-color-focus);
+}
