@@ -60,6 +60,7 @@ export class TablicaApp extends LitElement {
 
         this.#calcSheet = new CalcSheet();
         this.#downtimes = new Downtimes();
+        this.#downtimes.addEventListener('edit-requested', this.#onDowntimesEditRequested, this);
 
         if (DEBUG === true) {
             this.calcSheet = this.#calcSheet;
@@ -163,7 +164,7 @@ export class TablicaApp extends LitElement {
                     <button @click=${() => { this.showParameters = !this.showParameters; }} type="button" class="basis-1-1" style="padding: 0; margin: 0; padding-top: 0.2em; padding-bottom: 0.2em; margin-top: 0.2em;text-align: center; background-color: var(--field-bg-color-disabled); font-size: var(--font-size-s);">${this.showParameters === false ? '▼' : '▲'}</button>
                 </fieldset>
 
-                <downtimes-wizard showTimeError .downtimes=${this.#downtimes}></downtimes-wizard>
+                <downtimes-wizard id="downtimes-wizard" showTimeError .downtimes=${this.#downtimes}></downtimes-wizard>
 
                 <hr />
 
@@ -209,19 +210,19 @@ export class TablicaApp extends LitElement {
                 <fieldset disabled style="margin-top: 1em;">
                     <legend>Awaria</legend>
 
-                    <input id="strata-awaria-b1-polowa" title="Strata prędkości bramka 1 - połowa" type="number" />
-                    <input id="strata-awaria-b2-polowa" title="Strata prędkości bramka 2 - połowa" type="number" />
-                    <input id="strata-awaria-b1-koniec" title="Strata prędkości bramka 1 - koniec" type="number" />
-                    <input id="strata-awaria-b2-koniec" title="Strata prędkości bramka 2 - koniec" type="number" />
+                    <input id="strata-awaria-b1-polowa" title="Strata prędkości bramka 1 - połowa" type="text" />
+                    <input id="strata-awaria-b2-polowa" title="Strata prędkości bramka 2 - połowa" type="text" />
+                    <input id="strata-awaria-b1-koniec" title="Strata prędkości bramka 1 - koniec" type="text" />
+                    <input id="strata-awaria-b2-koniec" title="Strata prędkości bramka 2 - koniec" type="text" />
                 </fieldset>
 
                 <fieldset disabled style="margin-bottom: 0;">
                     <legend>Naprawa narzędzia</legend>
 
-                    <input id="strata-naprawa-b1-polowa" title="Strata prędkości bramka 1 - połowa" type="number" />
-                    <input id="strata-naprawa-b2-polowa" title="Strata prędkości bramka 2 - połowa" type="number" />
-                    <input id="strata-naprawa-b1-koniec" title="Strata prędkości bramka 1 - koniec" type="number" />
-                    <input id="strata-naprawa-b2-koniec" title="Strata prędkości bramka 2 - koniec" type="number" />
+                    <input id="strata-naprawa-b1-polowa" title="Strata prędkości bramka 1 - połowa" type="text" />
+                    <input id="strata-naprawa-b2-polowa" title="Strata prędkości bramka 2 - połowa" type="text" />
+                    <input id="strata-naprawa-b1-koniec" title="Strata prędkości bramka 1 - koniec" type="text" />
+                    <input id="strata-naprawa-b2-koniec" title="Strata prędkości bramka 2 - koniec" type="text" />
                 </fieldset>
                 </foldable-content>
                 <fieldset>
@@ -237,7 +238,7 @@ export class TablicaApp extends LitElement {
 
                 <fieldset disabled>
                     <legend>Plan produkcji</legend>
-                    <input id="plan-produkcji" title="Plan produkcji" type="number" />
+                    <input id="plan-produkcji" title="Plan produkcji" type="text" />
                 </fieldset>
 
                 <fieldset disabled>
@@ -369,36 +370,44 @@ export class TablicaApp extends LitElement {
 
             'strata-awaria-b1-polowa': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-awaria-b2-polowa': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-awaria-b1-koniec': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-awaria-b2-koniec': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
 
             'strata-naprawa-b1-polowa': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-naprawa-b2-polowa': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-naprawa-b1-koniec': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
             'strata-naprawa-b2-koniec': {
                 type: 'int',
-                defaultValue: 0
+                defaultValue: 0,
+                valueFormatter: (val) => typeof val !== 'number' || val === 0 ? '' : val
             },
 
             'strata-predkosci-b1-polowa': {
@@ -444,7 +453,15 @@ export class TablicaApp extends LitElement {
                 type: 'int',
                 defaultValue: undefined,
                 formulaArgs: ['cel-linii-koniec', 'sztuki-we-wozku-koniec'],
-                formula: (celLiniiKoniec, sztukiWeWozkuKoniec) => (celLiniiKoniec - sztukiWeWozkuKoniec) * -1
+                formula: (celLiniiKoniec, sztukiWeWozkuKoniec) => (celLiniiKoniec - sztukiWeWozkuKoniec) * -1,
+                valueFormatter: (value) => {
+                    let numVal = Number.parseInt(value);
+                    if (Number.isNaN(numVal)) {
+                        return '';
+                    } else {
+                        return value > 0 ? `+${value}` : value.toString();
+                    }
+                }
             },
             'procent-brakow': {
                 type: 'float',
@@ -459,6 +476,14 @@ export class TablicaApp extends LitElement {
         }
 
         this.#calcSheet.init();
+    }
+
+    /**
+     * 
+     * @param {string} id 
+     */
+    #onDowntimesEditRequested(id) {
+        this.renderRoot?.getElementById('downtimes-wizard')?.unfold();
     }
 }
 

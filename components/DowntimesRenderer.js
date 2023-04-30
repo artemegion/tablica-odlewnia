@@ -82,6 +82,9 @@ export class DowntimesRenderer extends LitElement {
     }
 
     .downtime .edit-button {
+        -webkit-user-select: none;
+        user-select: none;
+
         margin: -0.5em;
         margin-left: 0;
         padding: 0.5em;
@@ -106,7 +109,7 @@ export class DowntimesRenderer extends LitElement {
 
         let przestoje = this.downtimes.entries;
 
-        function renderBramka(typ, bramka, firstRendered) {
+        const renderBramka = ((typ, bramka, firstRendered) => {
             let przestojeOfTyp = przestoje.filter(p => p.typ === typ && p.bramka === bramka);
             let przestojeTotalMinutes = TimeRange.union(...przestojeOfTyp.map(p => p.timeRange)).minutes;
             let przestojeTotalMinutesAsFractionOfHour = (przestojeTotalMinutes / 60).toFixed(2);
@@ -128,15 +131,15 @@ export class DowntimesRenderer extends LitElement {
                             <div class="downtime-time-span basis-auto">
                                 ${p.timeRange.toString()}
                             </div>
-                            <div class="edit-button basis-auto">Edytuj</div>
+                            <div @click=${this.#onEditClick.bind(this, p.id)} class="edit-button basis-auto">Edytuj</div>
                         </div>
                         `)}
                     </div>
                 </div>
             `;
-        }
+        }).bind(this);
 
-        function renderDowntimesOfType(typ) {
+        const renderDowntimesOfType = (typ) => {
             let typToName = {
                 'awaria': 'Awaria',
                 'naprawa': 'Naprawa narzędzia'
@@ -188,6 +191,14 @@ export class DowntimesRenderer extends LitElement {
      */
     #onDowntimesChanged() {
         this.requestUpdate();
+    }
+
+    /**
+     * 
+     * @param {string} id 
+     */
+    #onEditClick(id) {
+        this.downtimes.emit('edit-requested', id);
     }
 }
 customElements.define('downtimes-renderer', DowntimesRenderer);

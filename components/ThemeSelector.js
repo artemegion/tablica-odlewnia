@@ -58,12 +58,12 @@ export class ThemeSelector extends LitElement {
             icon: '🌘'
         },
         {
-            name: 'blue',
-            icon: '🦚'
+            name: 'light',
+            icon: '☀️'
         },
         {
-            name: 'dev',
-            icon: '🌊'
+            name: 'blue',
+            icon: '🦚'
         }
     ];
 

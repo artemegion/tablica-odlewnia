@@ -1,11 +1,17 @@
 import { LitElement, css, html } from '../vendor/lit.js';
 import { Downtime, Downtimes } from '../lib/Downtimes.js';
-import { Time } from '../lib/Time.js';
+import { TimeV2 } from '../lib/Time.js';
 import { TimeRange } from '../lib/TimeRange.js';
 import { ShiftTable } from '../lib/ShiftTable.js';
 import './FoldableContent.js';
 import './DropDown.js';
-import './TimePicker.js';
+
+const STRINGS = {
+    cancelAdd: 'Anuluj dodawanie przestoju',
+    cancelEdit: 'Anuluj edycję przestoju',
+    add: 'Dodaj przestój',
+    edit: 'Zatwierdź zmianę'
+};
 
 export class DowntimesWizard extends LitElement {
     static styles = css`
@@ -51,18 +57,25 @@ export class DowntimesWizard extends LitElement {
         error: {
             type: String,
             reflect: true
+        },
+
+        editMode: {
+            type: String,
+            reflect: false
         }
     };
 
     static errorMessages = {
         'poczatek': 'Czas rozpoczęcia nie może być poza godzinami zmiany',
-        'koniec': 'Czas zakończenia nie może być poza godzinami zmiany'
+        'koniec': 'Czas zakończenia nie może być poza godzinami zmiany',
+        'poczatek > koniec': 'Czas rozpoczęcia musi być przed czasem zakończenia'
     };
 
     constructor() {
         super();
         this.downtimes = new Downtimes();
         this.error = undefined;
+        this.editMode = undefined;
     }
 
     render() {
@@ -70,7 +83,9 @@ export class DowntimesWizard extends LitElement {
         <link rel="stylesheet" href="/tablica-odlewnia/styles/index.css" />
 
         <foldable-content id="wizard" folded>
-            <button title="Anuluj dodawanie przestoju" type="button" @click=${this.#onAnulujClick}>Anuluj dodawanie przestoju</button>
+            <button title="${this.editMode ? STRINGS.cancelEdit : STRINGS.cancelAdd}" type="button" @click=${this.#onAnulujClick}>
+                ${this.editMode ? STRINGS.cancelEdit : STRINGS.cancelAdd}
+            </button>
 
             <form id="wizard-form">
                 <fieldset>
@@ -112,9 +127,21 @@ export class DowntimesWizard extends LitElement {
         </foldable-content>
 
         <button type="button" id="dodaj-przestoj" @click=${this.#onDodajPrzestojClick} class="${this.error ? 'show-error' : ''}">
-            ${this.error === undefined ? 'Dodaj przestój' : DowntimesWizard.errorMessages[this.error]}
+            ${this.error === undefined ? (this.editMode ? STRINGS.edit : STRINGS.add) : DowntimesWizard.errorMessages[this.error]}
         </button>
         `;
+    }
+
+    updated(props) {
+        if (props.has('downtimes')) {
+            props.get('downtimes')?.removeEventListener('edit-requested', this.#onDowntimesEditRequested);
+
+            this.downtimes.addEventListener('edit-requested', this.#onDowntimesEditRequested, this);
+        }
+    }
+
+    unfold() {
+        this.renderRoot?.getElementById('wizard').unfold();
     }
 
     #onDodajPrzestojClick() {
@@ -138,25 +165,71 @@ export class DowntimesWizard extends LitElement {
 
             let [pHour, pMinute] = poczatek.split(':').map(s => parseInt(s));
             let [kHour, kMinute] = koniec.split(':').map(s => parseInt(s));
-
-            // if end is before the beginning it means its the next day
-            if (pHour > kHour) {
-                kHour += 24;
-            }
+            let timeRange = new TimeRange(TimeV2.fromTime(pHour, pMinute), TimeV2.fromTime(kHour, kMinute));
 
             let shiftHours = ShiftTable.getShiftHours(ShiftTable.getDayShift());
 
-            if (pHour < shiftHours.from.hour || (pHour === shiftHours.from.hour && pMinute < shiftHours.from.minute)) {
+            let validFromTime = ShiftTable.getDayShift() === 3
+                ? timeRange.from.ticks <= shiftHours.to.ticks || timeRange.from.ticks >= shiftHours.from.ticks
+                : timeRange.from.ticks >= shiftHours.from.ticks && timeRange.from.ticks <= shiftHours.to.ticks;
+
+            if (!validFromTime) {
                 this.error = 'poczatek';
                 return;
             }
 
-            if (kHour > shiftHours.to.hour || (kHour === shiftHours.to.hour && kMinute > shiftHours.to.minute)) {
+            let validToTime = ShiftTable.getDayShift() === 3
+                ? timeRange.to.ticks <= shiftHours.to.ticks || timeRange.to.ticks >= shiftHours.from.ticks
+                : timeRange.to.ticks >= shiftHours.from.ticks && timeRange.to.ticks <= shiftHours.to.ticks;
+
+            if (!validToTime) {
                 this.error = 'koniec';
                 return;
             }
 
-            this.downtimes.push(new Downtime(typ, bramka, uwagi, new TimeRange(new Time(pHour, pMinute), new Time(kHour, kMinute))))
+            if (ShiftTable.getDayShift() === 3) {
+                // before 0:00 | after 0:00
+                //         p k | _ _ - p > k
+                //         _ _ | p k - p > k
+                //         p _ | k _ - never
+                //         k _ | p _ - always
+
+                // ("p k | _ _" or "_ _ | p k") and "p > k"
+                if (((timeRange.from.ticks >= shiftHours.from.ticks && timeRange.to.ticks >= shiftHours.from.ticks)
+                    || (timeRange.from.ticks <= shiftHours.to.ticks && timeRange.to.ticks <= shiftHours.to.ticks))
+                    && timeRange.from.ticks > timeRange.to.ticks) {
+                    this.error = 'poczatek > koniec';
+                    return;
+                } else {
+                    // "k _ | p _"
+                    if (timeRange.to.ticks >= shiftHours.from.ticks && timeRange.from.ticks <= shiftHours.to.ticks) {
+                        this.error = 'poczatek > koniec';
+                        return;
+                    }
+                }
+            } else {
+                if (timeRange.from.ticks > timeRange.to.ticks) {
+                    this.error = 'poczatek > koniec';
+                    return;
+                }
+            }
+
+            if (typeof this.editMode === 'string') {
+                let downtime = this.downtimes.getById(this.editMode);
+                if (downtime === undefined) {
+                    this.downtimes.push(new Downtime(typ, bramka, uwagi, timeRange));
+                }
+
+                downtime.typ = typ;
+                downtime.bramka = bramka;
+                downtime.uwagi = uwagi;
+                downtime.timeRange = timeRange;
+
+                this.downtimes.emit('entries-changed');
+                this.editMode = undefined;
+            } else {
+                this.downtimes.push(new Downtime(typ, bramka, uwagi, timeRange));
+            }
 
             this.renderRoot?.getElementById('wizard-form')?.reset();
             wizardElem?.fold();
@@ -164,19 +237,43 @@ export class DowntimesWizard extends LitElement {
     }
 
     #onAnulujClick() {
+        if (this.editMode) {
+            this.renderRoot?.getElementById('wizard-form')?.reset();
+        }
+
         this.renderRoot?.getElementById('wizard')?.fold();
         this.error = undefined;
+        this.editMode = undefined;
     }
 
     #onPoczatekInput() {
-        if (this.error === 'poczatek') {
+        if (this.error === 'poczatek' || this.error === 'poczatek > koniec') {
             this.error = undefined;
         }
     }
 
     #onKoniecInput() {
-        if (this.error === 'koniec') {
+        if (this.error === 'koniec' || this.error === 'poczatek > koniec') {
             this.error = undefined;
+        }
+    }
+
+    /**
+     * @param {string} id
+     */
+    #onDowntimesEditRequested(id) {
+        let downtime = this.downtimes.getById(id);
+        // this.downtimes.removeById(id);
+
+        if (downtime !== undefined) {
+            this.editMode = id;
+            this.error = undefined;
+            this.renderRoot.getElementById('typ').selected = downtime.typ;
+            this.renderRoot.getElementById('bramka_1').checked = downtime.bramka === 1;
+            this.renderRoot.getElementById('bramka_2').checked = downtime.bramka === 2;
+            this.renderRoot.getElementById('poczatek').value = downtime.timeRange.from.toString();
+            this.renderRoot.getElementById('koniec').value = downtime.timeRange.to.toString();
+            this.renderRoot.getElementById('uwagi').value = downtime.uwagi;
         }
     }
 }
