@@ -37,6 +37,10 @@ const MyWorker = {
         const filePath = requestUrlToFilePath(e.request.url);
 
         if (filePath === undefined) {
+            if (DEBUG === true) {
+                console.log('fetching ', e.request.url);
+            }
+
             return fetch(e.request);
         } else {
             if (!await WorkerCache.hasFilesForCachedCommit(filePath)) {

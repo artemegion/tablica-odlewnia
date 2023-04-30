@@ -1,0 +1,54 @@
+body {
+    /* --color-1: rgb(0, 0, 0);
+    --color-2: rgb(0, 0, 0);
+    --color-3: rgb(0, 0, 0);
+    --color-4: rgb(0, 0, 0);
+
+    --text-color: rgb(0, 0, 0);
+    --text-color-dim: rgb(0, 0, 0);
+
+    --accent-color: rgb(0, 0, 0);
+    --accent-color-dim: rgb(0, 0, 0); */
+
+
+    --bg-color: var(--color-1);
+    --color: var(--text-color);
+    --color-dim: var(--text-color-dim);
+
+    --link-color: var(--field-border-color-focus);
+
+    --field-bg-color: var(--color-3);
+    --field-color: var(--color);
+    --field-border-color: var(--color-4);
+
+    --field-bg-color-focus: var(--field-bg-color);
+    --field-color-focus: var(--color);
+    --field-border-color-focus: var(--accent-color);
+
+    --field-bg-color-disabled: var(--color-2);
+    --field-color-disabled: var(--color);
+    --field-border-color-disabled: var(--field-border-color);
+
+    --item-bg-color: var(--color-2);
+    --item-color: var(--color);
+    --item-border-color: var(--field-border-color);
+
+    --hour-bubble-bg-color: var(--color-1);
+    --hour-bubble-color: var(--color);
+    --hour-bubble-border-color: var(--field-border-color);
+
+    --hour-bubble-bg-color-active: var(--color-3);
+    --hour-bubble-color-active: var(--color);
+    --hour-bubble-border-color-active: var(--field-border-color);
+
+    --top-notif-bg-color: var(--color-2);
+    --top-notif-color: var(--color);
+
+    --scrollbar-bg-color: var(--accent-color-dim);
+    --scrollbar-thumb-color: var(--accent-color);
+
+    --font-size-l: 16pt;
+    --font-size: 12pt;
+    --font-size-s: 10pt;
+    --font-size-xs: 8pt;
+}

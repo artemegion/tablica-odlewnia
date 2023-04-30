@@ -1,0 +1,16 @@
+fieldset {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: flex-start;
+    align-items: center;
+
+    gap: 1em;
+
+    margin: 0;
+    margin-bottom: 1em;
+
+    padding: 0;
+
+    border: none;
+}

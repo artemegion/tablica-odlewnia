@@ -27,23 +27,44 @@ const GitHub = {
     async fetchFilePaths(path = '') {
         if (DEBUG === true) {
             return [
-                '/sw.js',
-                '/README.md',
-                '/manifest.webmanifest',
-                '/LICENSE',
-                '/index.html',
                 '/.gitignore',
+                '/manifest.webmanifest',
+                '/index.html',
+                '/README.md',
+                '/LICENSE',
+                '/sw.js',
                 '/sw/WorkerCache.js',
                 '/sw/utils.js',
                 '/sw/updates.js',
                 '/sw/GitHub.js',
+
                 '/styles/index.css',
-                '/js/updates.js',
-                '/js/theme-selector.js',
-                '/js/current-shift.js',
-                '/js/collapsible.js',
-                '/js/cells.js',
-                '/js/force-slash-at-end-of-url.js',
+                '/styles/themes/blue.css',
+                '/styles/themes/dark.css',
+                '/styles/themes/light.css',
+                '/styles/themes/purple.css',
+                '/styles/themes/theme.css',
+                '/styles/elements/body.css',
+                '/styles/elements/button.css',
+                '/styles/elements/fieldset.css',
+                '/styles/elements/form.css',
+                '/styles/elements/hr.css',
+                '/styles/elements/input.css',
+                '/styles/elements/legend.css',
+                '/styles/elements/radio.css',
+
+                '/vendor/lit.js',
+
+                '/components/AppTitlebar.js',
+                '/components/AppUpdatesListener.js',
+                '/components/DowntimeWizard.js',
+                '/components/FoldableContent.js',
+                '/components/DropDown.js',
+                '/components/ShiftHoursBubbles.js',
+                '/components/ShiftThisWeek.js',
+                '/components/TablicaApp.js',
+                '/components/ThemeSelector.js',
+
                 '/assets/icon.svg',
                 '/assets/icon_512.png',
                 '/assets/icon_192.png'
@@ -112,7 +133,7 @@ const GitHub = {
             try {
                 return await (await fetch('debug-latest-commit.txt')).text();
             } catch {
-                return undefined;
+                return await WorkerCache.getCachedCommit();
             }
         } else {
             try {

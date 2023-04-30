@@ -5,10 +5,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-
     <link rel="canonical" href="https://artemegion.github.io/tablica-odlewnia/" />
     <link rel="manifest" href="/tablica-odlewnia/manifest.webmanifest" />
 
@@ -16,132 +12,24 @@
     <link rel="stylesheet" href="/tablica-odlewnia/styles/index.css" />
 
     <title>Tablica odlewnia</title>
+
+    <!-- app js -->
+    <script>var DEBUG = false;</script>
+    <script type="module" src="/tablica-odlewnia/components/TablicaApp.js"></script>
 </head>
 
 <body>
-    <div class="app-container flex-col">
-        <div id="app-update-notif" class="top-notif" style="display: none; pointer-events: none;">Dotknij tutaj aby zacząć używać najnowszej wersji aplikacji.</div>
-
-        <div class="app-titlebar">
-            <div class="app-title">
-                <span>Tablica odlewnia</span>
-                <span style="opacity: 0; pointer-events: none; float: left; font-size: 1.3em;">⬇️</span>
-                <span id="theme-selector" style="float: right; font-size: 1.3em;">🌘</span>
-            </div>
-            <div class="shift">Zmiana <span id="shift-this-week">?</span></div>
-        </div>
-        <div class="flex-row data-row">
-            <div class="flex-half">Takt</div>
-            <input data-cell-id="takt" data-cell-type="float" id="takt" class="flex-half" type="number" value="0.85" />
-        </div>
-
-        <div class="flex-col flex-fill">
-            <div class="flex-row hour-bubbles">
-                <div class="flex-row flex-half">
-                    <div class="hour-bubble _1">10</div>
-                    <div class="hour-bubble _2">18</div>
-                    <div class="hour-bubble _3">2</div>
-                </div>
-
-                <div class="flex-row flex-half">
-                    <div class="hour-bubble _1">14</div>
-                    <div class="hour-bubble _2">22</div>
-                    <div class="hour-bubble _3">6</div>
-                </div>
-            </div>
-
-            <div class="flex-row data-row">Cel 100%</div>
-            <div class="flex-row flex-auto-gap">
-                <input data-cell-id="cel-polowa" data-cell-type="int" id="cel-1" class="flex-half" type="number" value="565" />
-                <input data-cell-id="cel-koniec" data-cell-type="int" id="cel-2" class="flex-half" type="number" value="1125" />
-            </div>
-
-            <div class="flex-row data-row">W wózku</div>
-            <div class="flex-row flex-auto-gap">
-                <input data-cell-id="sztuki-we-wozku-polowa" data-cell-type="int" id="sztuki-1" class="flex-half" type="number" value="" />
-                <input data-cell-id="sztuki-we-wozku-koniec" data-cell-type="int" id="sztuki-2" class="flex-half" type="number" value="" />
-            </div>
-
-            <div class="flex-row data-row">Spływ narastająco</div>
-            <div class="flex-row flex-auto-gap">
-                <input disabled data-cell-id="splyw-narastajaco-polowa" data-cell-type="int" id="nar-1" class="flex-half" type="number" value="" />
-                <input disabled data-cell-id="splyw-narastajaco-koniec" data-cell-type="int" id="nar-2" class="flex-half" type="number" value="" />
-            </div>
-
-            <div class="flex-row data-row">Spływ z godziny</div>
-            <div class="flex-row flex-auto-gap">
-                <input disabled data-cell-id="splyw-z-godziny-polowa" data-cell-type="int" id="zgodz-1" class="flex-half" type="number" value="" />
-                <input disabled data-cell-id="splyw-z-godziny-koniec" data-cell-type="int" id="zgodz-2" class="flex-half" type="number" value="" />
-            </div>
-
-            <div class="flex-row data-row">Braki</div>
-            <div class="flex-row flex-auto-gap">
-                <input data-cell-id="braki-polowa" data-cell-type="int" id="braki-1" class="flex-half" type="number" value="8" />
-                <input data-cell-id="braki-koniec" data-cell-type="int" id="braki-2" class="flex-half" type="number" value="8" />
-            </div>
-
-            <div class="flex-row data-row">Czas strat</div>
-            <div class="flex-row flex-auto-gap">
-                <input disabled data-cell-id="czas-strat-polowa" data-cell-type="int" id="czas-strat-1" class="flex-half" type="number" value="" />
-                <div class="flex-row flex-half flex-auto-gap">
-                    <input disabled data-cell-id="czas-strat-koniec" data-cell-type="int" id="czas-strat-2" class="flex-half" type="number" value="" />
-                    <input disabled data-cell-id="czas-strat-suma" data-cell-type="int" id="czas-strat-suma" class="flex-half" type="number" value="" />
-                </div>
-            </div>
-
-            <div class="flex-row data-row">Czyszczenie i pokrywanie narzędzia</div>
-            <div class="flex-row flex-auto-gap">
-                <input data-cell-id="czyszczenie-b1-polowa" data-cell-type="int" id="czas-czyszczenie-b1-1" class="flex-q" type="number" value="20" />
-                <input data-cell-id="czyszczenie-b2-polowa" data-cell-type="int" id="czas-czyszczenie-b2-1" class="flex-q" type="number" value="20" />
-                <input data-cell-id="czyszczenie-b1-koniec" data-cell-type="int" id="czas-czyszczenie-b1-2" class="flex-q" type="number" value="20" />
-                <input data-cell-id="czyszczenie-b2-koniec" data-cell-type="int" id="czas-czyszczenie-b2-2" class="flex-q" type="number" value="20" />
-            </div>
-
-            <div class="collapsible flex-row data-row">Awaria / zmiana narzędzi</div>
-            <div class="content flex-row flex-auto-gap">
-                <input data-cell-id="awaria-b1-polowa" data-cell-type="int?" id="awaria-b1-polowa" class="flex-half" type="number" value="" />
-                <input data-cell-id="awaria-b2-polowa" data-cell-type="int?" id="awaria-b2-polowa" class="flex-half" type="number" value="" />
-                <input data-cell-id="awaria-b1-koniec" data-cell-type="int?" id="awaria-b1-koniec" class="flex-half" type="number" value="" />
-                <input data-cell-id="awaria-b2-koniec" data-cell-type="int?" id="awaria-b2-koniec" class="flex-half" type="number" value="" />
-            </div>
-
-            <div class="flex-row data-row">Strata prędkości</div>
-            <div class="flex-row flex-auto-gap">
-                <input disabled data-cell-id="strata-predkosci-b1-polowa" data-cell-type="int" id="czas-str-pred-b1-1" class="flex-half" type="number" value="" />
-                <input disabled data-cell-id="strata-predkosci-b2-polowa" data-cell-type="int" id="czas-str-pred-b2-1" class="flex-half" type="number" value="" />
-                <input disabled data-cell-id="strata-predkosci-b1-koniec" data-cell-type="int" id="czas-str-pred-b1-2" class="flex-half" type="number" value="" />
-                <input disabled data-cell-id="strata-predkosci-b2-koniec" data-cell-type="int" id="czas-str-pred-b2-2" class="flex-half" type="number" value="" />
-            </div>
-
-            <div class="flex-row data-row">Brakujące sztuki do 100%</div>
-            <input disabled data-cell-id="brakujace-sztuki-do-100" data-cell-type="int" id="brak-do-100" style="width: 100%" type="number" value="" />
-
-            <div class="flex-row data-row">OEU</div>
-            <input disabled data-cell-id="oeu" data-cell-type="int" id="oeu" style="width: 100%" type="number" value="" />
-
-            <div class="flex-row data-row">% braków</div>
-            <input disabled data-cell-id="procent-brakow" data-cell-type="float" id="procent-brakow" style="width: 100%" type="number" value="" />
-        </div>
-    </div>
+    <tablica-app></tablica-app>
 
     <!-- pwa web worker -->
     <script>
-        if (typeof navigator.serviceWorker !== 'undefined') {
-            navigator.serviceWorker.register(
-                '/tablica-odlewnia/sw.js',
-                { scope: '/tablica-odlewnia/' }
-            );
-        }
+        (() => {
+            if (typeof navigator.serviceWorker !== 'undefined') {
+                navigator.serviceWorker.register(
+                    '/tablica-odlewnia/sw.js',
+                    { scope: '/tablica-odlewnia/' }
+                );
+            }
+        })();
     </script>
-
-    <!-- app -->
-    <script>var DEBUG = false;</script>
-    <script src="/tablica-odlewnia/js/force-slash-at-end-of-url.js"></script>
-    <script src="/tablica-odlewnia/js/cells.js"></script>
-    <script src="/tablica-odlewnia/js/collapsible.js"></script>
-    <script src="/tablica-odlewnia/js/current-shift.js"></script>
-    <script src="/tablica-odlewnia/js/theme-selector.js"></script>
-    <script src="/tablica-odlewnia/js/updates.js"></script>
 </body>
-
-</html>

@@ -1,0 +1,9 @@
+legend {
+    -webkit-user-select: none;
+    user-select: none;
+
+    margin-bottom: 0.2em;
+
+    font-size: var(--font-size);
+    font-weight: normal;
+}

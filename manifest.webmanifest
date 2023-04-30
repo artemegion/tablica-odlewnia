@@ -2,7 +2,7 @@
   "id": "tablica-odlewnia",
   "name": "Tablica odlewnia",
   "short_name": "Tablica odlewnia",
-  "description": "Łatwo wypełnij tablicę na odlewni tłoków Mahle",
+  "description": "Łatwo wypełnij tablicę na odlewni tłoków",
   "scope": "/tablica-odlewnia/",
   "start_url": "/tablica-odlewnia/",
   "background_color": "#000000",

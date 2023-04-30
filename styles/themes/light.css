@@ -1,0 +1,12 @@
+body[data-app-theme="light"] {
+    --color-1: rgb(250, 250, 250);
+    --color-2: rgb(220, 220, 220);
+    --color-3: rgb(230, 230, 230);
+    --color-4: rgb(180, 180, 180);
+
+    --text-color: rgb(0, 0, 0);
+    --text-color-dim: rgb(40, 40, 40);
+
+    --accent-color: rgb(127, 255, 212);
+    --accent-color-dim: rgb(102, 167, 145);
+}
