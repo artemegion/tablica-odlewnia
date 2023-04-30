@@ -7,7 +7,7 @@ const GitHub = {
     /** @type {string} repository name */
     repository: 'tablica-odlewnia',
     /** @type {string} branch used to fetch file list, should be the branch used to deploy the GitHub page */
-    branch: 'multiple-breakdowns',
+    branch: 'deploy',
 
     getApiUrl() {
         return `https://api.github.com/repos/${this.username}/${this.repository}`;
