@@ -2,7 +2,7 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" /> 
 
-import { MyWorker } from './sw2/MyWorker.js';
+import { MyWorker } from './sw/MyWorker.js';
 
 (() => {
     let worker = new MyWorker();

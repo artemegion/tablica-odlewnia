@@ -1,42 +1,63 @@
-const WorkerCache = {
-    // name of the cache where the latest known commit will be stored
-    commitCacheName: 'latest-commit',
-    // default commit to use when its impossible to fetch
-    // the latest commit or get the cached commit
-    defaultCommit: 'e0b7a6c85413b4043129517d7c58d22fc58aac77',
+/// <reference no-default-lib="true"/>
+/// <reference lib="esnext" />
+/// <reference lib="webworker" /> 
 
+import { MyWorker } from './MyWorker.js';
+import { requestUrlToFilePath } from './utils.js';
+
+const COMMIT_CACHE_NAME = 'latest-commit';
+
+export class WorkerCache {
+    /**
+     * 
+     * @param {string} defaultCommit 
+     */
+    constructor(worker, defaultCommit) {
+        this.#defaultCommit = defaultCommit;
+        this.worker = worker;
+    }
+
+    /** @type {string} */ #defaultCommit;
+    /** @type {MyWorker} */ worker;
+
+    get defaultCommit() {
+        return this.#defaultCommit;
+    }
+
+    /**
+     * 
+     * @returns {Promise<string>} 
+     */
     async getCachedCommit() {
-        const cache = await caches.open(this.commitCacheName);
-        const response = await cache.match(this.commitCacheName);
+        const cache = await caches.open(COMMIT_CACHE_NAME);
+        const response = await cache.match(COMMIT_CACHE_NAME);
 
         if (response === undefined) {
-            cache.put(this.commitCacheName, new Response(this.defaultCommit, { status: 200 }));
-            return this.defaultCommit;
+            cache.put(COMMIT_CACHE_NAME, new Response(this.#defaultCommit, { status: 200 }));
+            return this.#defaultCommit;
         } else {
             return await response.text();
         }
-    },
+    }
 
+    /**
+     * 
+     * @param {string} sha 
+     * @returns {Promise<void>}
+     */
     async setCachedCommit(sha) {
-        const cache = await caches.open(this.commitCacheName);
-        await cache.put(this.commitCacheName, new Response(sha, { status: 200 }));
-    },
+        const cache = await caches.open(COMMIT_CACHE_NAME);
+        await cache.put(COMMIT_CACHE_NAME, new Response(sha, { status: 200 }));
+    }
 
     /**
      * @param {string[]} files
-     * @returns {Promise<boolean>}
+     * @param {string | undefined} [sha]
+     * @returns {Promise<boolean>} 
      */
-    async hasFilesForCachedCommit(...files) {
-        return await this.hasFilesForCommit(await this.getCachedCommit(), ...files);
-    },
+    async hasFiles(files = [], sha) {
+        if (typeof sha !== 'string') sha = await this.getCachedCommit();
 
-
-    /**
-     * @param {string} [sha]
-     * @param {string[]} files
-     * @returns {Promise<boolean>}
-     */
-    async hasFilesForCommit(sha, ...files) {
         if (files.length > 0) {
             if (!await caches.has(sha)) return false;
             const cache = await caches.open(sha);
@@ -49,83 +70,62 @@ const WorkerCache = {
         } else {
             return await caches.has(sha);
         }
-    },
+    }
 
     /**
      * 
-     * @param {string} sha 
-     * @returns {Promise<string[]>}
+     * @param {string | undefined} [sha] 
+     * @returns {Promise<string[]>} 
      */
-    async getFilesForCommit(sha) {
+    async getFiles(sha) {
+        if (typeof sha !== 'string') sha = await this.getCachedCommit();
+
         const cache = await caches.open(sha);
-        return (await cache.keys()).map(req => requestUrlToFilePath(req.url)).filter(a => a !== undefined);
-    },
-
-    /**
-     * 
-     * @returns {Promise<string[]>}
-     */
-    async getFilesForCachedCommit() {
-        return await this.getFilesForCommit(await this.getCachedCommit());
-    },
-
-    /**
-     * 
-     * @param {string} sha 
-     * @param {string} filePath
-     * @returns {Promise<Response | undefined>}
-     */
-    async getFileForCommit(sha, filePath) {
-        const cache = await caches.open(sha);
-        return await cache.match(filePath);
-    },
-
-    /**
-     * 
-     * @param {string} filePath
-     * @returns {Promise<Response | undefined>}
-     */
-    async getFileForCachedCommit(filePath) {
-        return await this.getFileForCommit(await this.getCachedCommit(), filePath);
-    },
+        return (await cache.keys()).map(req => requestUrlToFilePath(req.url, this.worker.github.repository, this.worker.github.username)).filter(path => path !== undefined);
+    }
 
     /**
      * 
      * @param {{ [path: string]: Response }} files 
-     * @param {boolean} incremental
-     * @param {string | undefined} [useSha]
-     * @returns {Promise<void>}
+     * @param {boolean | undefined} [incremental]
+     * @param {string | undefined} [sha] 
      */
-    async setFilesForCachedCommit(files, incremental = true) {
-        await this.setFilesForCommit(await this.getCachedCommit(), files, incremental);
-    },
+    async setFiles(files, incremental, sha) {
+        if (typeof sha !== 'string') sha = await this.getCachedCommit();
 
-    /**
-    * 
-    * @param {string} sha
-    * @param {{ [path: string]: Response }} files 
-    * @param {boolean} incremental 
-    * @returns {Promise<void>}
-    */
-    async setFilesForCommit(sha, files, incremental = true) {
-        if (incremental === false) await caches.delete(sha);
-
+        if (incremental !== true) await caches.delete(sha);
         const cache = await caches.open(sha);
 
         for (let path of Object.keys(files)) {
-            await cache.put(path, files[path]);
+            if (files[path] instanceof Response) {
+                await cache.put(path, files[path]);
+            }
         }
-    },
+    }
 
     /**
      * 
-     * @param {boolean} omitFilesForCachedCommit 
+     * @param {string} path 
+     * @param {string | undefined} [sha]
+     * @returns {Promise<Response | undefined>}
+     */
+    async getFile(path, sha) {
+        if (typeof sha !== 'string') sha = await this.getCachedCommit();
+
+        const cache = await caches.open(sha);
+        return await cache.match(path);
+    }
+
+    /**
+     * 
+     * @param {boolean | undefined} [omitFilesForCachedCommit] 
      * @returns {Promise<void>}
      */
-    async deleteCachedFiles(omitFilesForCachedCommit = false) {
+    async purgeCache(omitFilesForCachedCommit) {
         for (let cacheName of await caches.keys()) {
-            if (cacheName === this.commitCacheName || (omitFilesForCachedCommit && cacheName === await this.getCachedCommit())) continue;
+            if (cacheName === COMMIT_CACHE_NAME || (omitFilesForCachedCommit === true && cacheName === await this.getCachedCommit())) continue;
+
             await caches.delete(cacheName);
         }
     }
-};
+}
