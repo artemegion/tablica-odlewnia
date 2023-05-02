@@ -27,7 +27,7 @@
             if (typeof navigator.serviceWorker !== 'undefined') {
                 navigator.serviceWorker.register(
                     '/tablica-odlewnia/sw.js',
-                    { scope: '/tablica-odlewnia/' }
+                    { scope: '/tablica-odlewnia/', type: 'module' }
                 );
             }
         })();

@@ -1,152 +1,121 @@
-/**
- * GitHub API wrappers
- */
-const GitHub = {
-    /** @type {string} username of the page's repository owner */
-    username: 'artemegion',
-    /** @type {string} repository name */
-    repository: 'tablica-odlewnia',
-    /** @type {string} branch used to fetch file list, should be the branch used to deploy the GitHub page */
-    branch: 'deploy',
+/// <reference no-default-lib="true"/>
+/// <reference lib="esnext" />
+/// <reference lib="webworker" /> 
 
-    getApiUrl() {
+export class GitHub {
+    /**
+     *
+     * @param {string} username
+     * @param {string} repository
+     * @param {string} branch
+     */
+    constructor(username, repository, branch) {
+        this.username = username;
+        this.repository = repository;
+        this.branch = branch;
+    }
+
+    /** @type {string} */ username;
+    /** @type {string} */ repository;
+    /** @type {string} */ branch;
+
+    get apiUrl() {
         return `https://api.github.com/repos/${this.username}/${this.repository}`;
-    },
+    }
 
-    getPageUrl() {
-        return DEBUG
-            ? `http://127.0.0.1:3000/${this.repository}`
-            : `https://${this.username}.github.io/${this.repository}`;
-    },
+    get pageUrl() {
+        return `https://${this.username}.github.io/${this.repository}`;
+    }
 
     /**
-     * 
-     * @param {string} path 
-     * @returns {Promise<string[]>}
+     * Recusively fetch a list of all files in a directory and subdirectories.
+     * The file names are prepended with their parent directories' names.
+     * @param {string} path Path to a directory.
+     * @returns {Promise<string[] | Error>} A promise that resolves with a list of file paths.
      */
     async fetchFilePaths(path = '') {
-        if (DEBUG === true) {
-            return [
-                '/.gitignore',
-                '/manifest.webmanifest',
-                '/index.html',
-                '/README.md',
-                '/LICENSE',
-                '/sw.js',
-                '/sw/WorkerCache.js',
-                '/sw/utils.js',
-                '/sw/updates.js',
-                '/sw/GitHub.js',
+        try {
+            let response = await fetch(`${this.apiUrl}/contents/${path}?ref=${this.branch}`);
+            let responseArr = await response.json();
 
-                '/styles/index.css',
-                '/styles/themes/blue.css',
-                '/styles/themes/dark.css',
-                '/styles/themes/light.css',
-                '/styles/themes/purple.css',
-                '/styles/themes/theme.css',
-                '/styles/elements/body.css',
-                '/styles/elements/button.css',
-                '/styles/elements/fieldset.css',
-                '/styles/elements/form.css',
-                '/styles/elements/hr.css',
-                '/styles/elements/input.css',
-                '/styles/elements/legend.css',
-                '/styles/elements/radio.css',
+            let filePaths = [];
 
-                '/vendor/lit.js',
-
-                '/components/AppTitlebar.js',
-                '/components/AppUpdatesListener.js',
-                '/components/DowntimeWizard.js',
-                '/components/FoldableContent.js',
-                '/components/DropDown.js',
-                '/components/ShiftHoursBubbles.js',
-                '/components/ShiftThisWeek.js',
-                '/components/TablicaApp.js',
-                '/components/ThemeSelector.js',
-
-                '/assets/icon.svg',
-                '/assets/icon_512.png',
-                '/assets/icon_192.png'
-            ];
-        } else {
-            try {
-                let response = await fetch(`${this.getApiUrl()}/contents/${path}?ref=${this.branch}`);
-                let responseArr = await response.json();
-
-                let filePaths = [];
-
-                for (let fileMeta of responseArr) {
-                    if (fileMeta.type === 'dir') {
-                        filePaths.push(...await this.fetchFilePaths(fileMeta.path));
-                    } else if (fileMeta.type === 'file') {
-                        filePaths.push('/' + fileMeta.path);
-                    }
+            for (let fileMeta of responseArr) {
+                if (fileMeta.type === 'dir') {
+                    filePaths.push(...await this.fetchFilePaths(fileMeta.path));
+                } else if (fileMeta.type === 'file') {
+                    filePaths.push('/' + fileMeta.path);
                 }
-
-                return filePaths;
-            } catch {
-                return [];
             }
+
+            return filePaths;
+        } catch (e) {
+            return new Error(`Could not fetch file paths.\n${e}`);
         }
-    },
+    }
 
     /**
-     * @param {boolean} incremental
-     * @param {string[]} paths
-     * @returns {Promise<{ [key: string]: Response }>}
+     * Fetches files specified in `paths`.
+     * @param {string[]} paths Paths of files to fetch.
+     * @returns {Promise<{ [path: string]: Response | Error }>}
      */
-    async fetchFiles(incremental = false, ...paths) {
-        try {
-            let responses = {};
-            let filePaths = incremental ? (await GitHub.fetchFilePaths()).filter(path => paths.indexOf(path) < 0) : paths.length > 0 ? paths : await GitHub.fetchFilePaths();
+    async fetchFiles(paths) {
+        let responses = {};
 
-            for (let filePath of filePaths) {
+        for (let path of paths) {
+            if (!path.startsWith('/'))
+                path = '/' + path;
 
-                let response = await fetch(`${this.getPageUrl()}${filePath}`, {
+            try {
+                let response = await fetch(`${this.pageUrl}${path}`, {
                     headers: {
                         'Accept': '*/*'
                     },
                     redirect: 'follow'
                 });
 
+                // every 2xx and 3xx response is treated as 200, every other response is an error
+                if (![2, 3].includes(Math.floor(response.status / 100))) {
+                    responses[path] = new Error(`Could not fetch '${path}'. Response code was ${response.status}.`);
+                }
+
                 // Not all browsers support the Response.body stream, so fall back to reading the entire body into memory as a blob.
                 const body = await ('body' in response ?
                     Promise.resolve(response.body) :
                     response.blob());
 
-                responses[filePath] = new Response(body, {
+                responses[path] = new Response(body, {
                     headers: response.headers,
                     status: 200,
                     statusText: 'OK',
                 });
-            }
+            } catch (e) {
+                if (DEBUG === true) {
+                    console.error(e);
+                }
 
-            return responses;
-        } catch {
-            return {};
+                responses[path] = new Error(`Could not fetch '${path}'.\n${e}`);
+            }
         }
-    },
 
+        return responses;
+    }
+
+    /**
+     * Fetches the latest commit.
+     * @returns {Promise<string | Error>}
+     */
     async fetchLatestCommit() {
-        if (DEBUG === true) {
-            try {
-                return await (await fetch('debug-latest-commit.txt')).text();
-            } catch {
-                return await WorkerCache.getCachedCommit();
-            }
-        } else {
-            try {
-                let response = await fetch(`${this.getApiUrl()}/commits/${this.branch}`, {
-                    headers: {
-                        'Accept': 'application/vnd.github.sha'
-                    }
-                });
+        try {
+            let response = await fetch(`${this.apiUrl}/commits/${this.branch}`, {
+                headers: {
+                    'Accept': 'application/vnd.github.sha'
+                }
+            });
 
-                return await response.text();
-            } catch {
-                return undefined;
-            }
+            return await response.text();
+        } catch (e) {
+            return new Error('Could not fetch the latest commit.' + e);
         }
     }
-};
+}
