@@ -3,7 +3,6 @@
 /// <reference lib="webworker" /> 
 
 import { MyWorker } from './MyWorker.js';
-import { requestUrlToFilePath } from './utils.js';
 
 const COMMIT_CACHE_NAME = 'latest-commit';
 
@@ -81,7 +80,7 @@ export class WorkerCache {
         if (typeof sha !== 'string') sha = await this.getCachedCommit();
 
         const cache = await caches.open(sha);
-        return (await cache.keys()).map(req => requestUrlToFilePath(req.url, this.worker.github.repository, this.worker.github.username)).filter(path => path !== undefined);
+        return (await cache.keys()).map(req => this.worker.util.requestUrlToFilePath(req.url, this.worker.github.repository, this.worker.github.username)).filter(path => path !== undefined);
     }
 
     /**

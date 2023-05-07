@@ -2,18 +2,20 @@
 /// <reference lib="esnext" />
 /// <reference lib="webworker" /> 
 
+import { Util } from './Util.js';
 import { GitHub } from './GitHub.js';
 import { WorkerCache } from './WorkerCache.js';
-import { requestUrlToFilePath } from './utils.js';
 
 export class MyWorker {
     constructor() {
+        this.util = new Util();
         this.github = new GitHub('artemegion', 'tablica-odlewnia', 'deploy');
         this.cache = new WorkerCache('0b9c22939d35f534b51d62041a88ca78fe5828e1');
     }
 
     github;
     cache;
+    util;
 
     init() {
         self.addEventListener('install', (e => { e.waitUntil(this.onInstall(e)) }).bind(this));
@@ -73,7 +75,7 @@ export class MyWorker {
     }
 
     async onFetch(e) {
-        const filePath = requestUrlToFilePath(e.request.url, this.github.repository, this.github.username);
+        const filePath = this.util.requestUrlToFilePath(e.request.url, this.github.repository, this.github.username);
 
         if (filePath === undefined) {
             return fetch(e.request);

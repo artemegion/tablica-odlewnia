@@ -90,10 +90,6 @@ export class GitHub {
                     statusText: 'OK',
                 });
             } catch (e) {
-                if (DEBUG === true) {
-                    console.error(e);
-                }
-
                 responses[path] = new Error(`Could not fetch '${path}'.\n${e}`);
             }
         }
