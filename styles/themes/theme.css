@@ -1,3 +1,8 @@
+@import "/tablica-odlewnia/styles/themes/dark.css";
+@import "/tablica-odlewnia/styles/themes/blue.css";
+@import "/tablica-odlewnia/styles/themes/light.css";
+@import "/tablica-odlewnia/styles/themes/coffee.css";
+
 body {
     /* --color-1: rgb(0, 0, 0);
     --color-2: rgb(0, 0, 0);
@@ -27,7 +32,7 @@ body {
 
     --field-bg-color-disabled: var(--color-2);
     --field-color-disabled: var(--color);
-    --field-border-color-disabled: var(--field-border-color);
+    --field-border-color-disabled: var(--field-bg-color);
 
     --item-bg-color: var(--color-2);
     --item-color: var(--color);

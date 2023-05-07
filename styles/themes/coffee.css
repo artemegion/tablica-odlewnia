@@ -1,0 +1,12 @@
+body[data-app-theme="coffee"] {
+    --color-1: #594545;
+    --color-2: #6e5555;
+    --color-3: #816666;
+    --color-4: #6e5555;
+
+    --text-color: rgb(250, 250, 250);
+    --text-color-dim: rgb(200, 200, 200);
+
+    --accent-color: #FFF8EA;
+    --accent-color-dim: #e0d5bf;
+}

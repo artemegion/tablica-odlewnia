@@ -20,29 +20,49 @@ export class ThemeSelector extends LitElement {
             font-size: var(--font-size);
         }
 
-        .theme-dropdown {
-            display: flex;
-            flex-direction: row;
+        #theme-selector-dialog {
+            position: fixed;
+            top: 2em;
+            left: 10vw;
+            width: 80vw;
 
-            justify-content: flex-start;
-            align-items: center;
-
-            flex-wrap: wrap;
-            gap: 0.25em;
+            padding: 0.25em;
 
             background-color: var(--field-bg-color);
-            padding: 0.25em;
+            border: 0px solid var(--field-border-color);
+            border-bottom-width: 4px;
+
+            box-shadow: 0px 6px 23px -10px rgba(43, 48, 60, 1);
+
+            transition: opacity 0.2s ease-in-out;
         }
 
-        foldable-content {
-            position: absolute;
-            max-width: 30%;
-
-            margin-left: calc(var(--client-width) * -1);
+        #theme-selector-dialog[data-opened="true"] {
+            pointer-events: all;
+            opacity: 1;
         }
 
-        foldable-content[folded="false"] {
-            border: 1px solid var(--field-bg-color-disabled);
+        #theme-selector-dialog[data-opened="false"] {
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        #theme-selector-dialog label {
+            font-size: var(--font-size);
+        }
+
+        #theme-selector-behind {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+
+            pointer-events: none;
+        }
+
+        #theme-selector-behind[data-opened="true"] {
+            pointer-events: all;
         }
     `;
 
@@ -64,21 +84,27 @@ export class ThemeSelector extends LitElement {
         {
             name: 'blue',
             icon: '🦚'
+        },
+        {
+            name: 'coffee',
+            icon: '☕'
         }
     ];
 
     render() {
-        let icon = this.#themes.find(theme => theme.name === this.themeName).icon;
-
         return html`
         <link rel="stylesheet" href="/tablica-odlewnia/styles/index.css" />
 
-        <div @click=${this.#onIconClick.bind(this)}>🎨</div>
-        <foldable-content id="theme-foldable" folded=${!this.selectorOpen}>
-            <div class="theme-dropdown">
+        <div id="icon" @click=${this.#onIconClick.bind(this)}>🎨</div>
+
+        <div id="theme-selector-behind" data-opened="${this.selectorOpen}" @click=${this.#onThemeSelectorBehindClick.bind(this)}></div>
+        <div id="theme-selector-dialog" data-opened="${this.selectorOpen}"  @click=${this.#onThemeSelectorDialogClick.bind(this)} class="flex-column justify-start align-center">
+            <label class="basis-auto">Wybierz motyw aplikacji</label>
+            &nbsp;<br />&nbsp;
+            <div class="basis-1-1 flex-row justify-center align-start flex-gap-s">
                 ${this.#themes.map(theme => html`<div @click=${this.#onThemeClick.bind(this, theme.name)}>${theme.icon}</div>`)}
             </div>
-        </foldable-content>
+        </div>
         `;
     }
 
@@ -87,13 +113,6 @@ export class ThemeSelector extends LitElement {
 
         // apply side effects without changing the theme
         this.#setThemeId(this.#getThemeId());
-    }
-
-    updated(t) {
-        super.updated(t);
-
-        let themeFoldableElem = this.renderRoot?.getElementById('theme-foldable');
-        this.style.setProperty('--client-width', themeFoldableElem.getBoundingClientRect().width + 1 - this.getBoundingClientRect().width + 'px');
     }
 
     /**
@@ -124,8 +143,21 @@ export class ThemeSelector extends LitElement {
         return appThemeId;
     }
 
+    #onThemeSelectorBehindClick() {
+        this.selectorOpen = false;
+    }
+
+    #onThemeSelectorDialogClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
     #onIconClick() {
         this.selectorOpen = !this.selectorOpen;
+
+        if (this.selectorOpen) {
+            this.renderRoot.getElementById('theme-selector-dialog').style.top = this.renderRoot.getElementById('icon').getBoundingClientRect().bottom + 1 + 'px';
+        }
     }
 
     #onThemeClick(themeName) {

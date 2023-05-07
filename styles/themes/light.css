@@ -9,4 +9,6 @@ body[data-app-theme="light"] {
 
     --accent-color: rgb(127, 255, 212);
     --accent-color-dim: rgb(102, 167, 145);
+
+    --field-border-color-disabled: var(--field-border-color);
 }
