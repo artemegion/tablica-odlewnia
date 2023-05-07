@@ -6,9 +6,12 @@ import './FoldableContent.js';
 import './DowntimesWizard.js';
 import './DowntimesRenderer.js';
 import { CalcSheet } from '../lib/CalcSheet.js';
-import { Downtime, Downtimes } from '../lib/Downtimes.js';
+import { Downtimes } from '../lib/Downtimes.js';
 import { TimeRange } from '../lib/TimeRange.js';
 import { ShiftTable } from '../lib/ShiftTable.js';
+import { BoxStorage } from '../lib/storage/BoxStorage.js';
+import { DowntimeBox } from '../lib/storage/DowntimeBox.js';
+import { NumberBox } from '../lib/storage/NumberBox.js';
 
 export class TablicaApp extends LitElement {
     static properties = {
@@ -61,56 +64,10 @@ export class TablicaApp extends LitElement {
         this.#calcSheet = new CalcSheet();
         this.#downtimes = new Downtimes();
         this.#downtimes.addEventListener('edit-requested', this.#onDowntimesEditRequested, this);
-
-        if (DEBUG === true) {
-            this.calcSheet = this.#calcSheet;
-            this.downtimes = this.#downtimes;
-        }
-
-        this.#connectDowntimesToCalcSheet();
     }
 
     #calcSheet;
     #downtimes;
-
-    #connectDowntimesToCalcSheet() {
-        this.#downtimes.addEventListener('entries-changed', () => {
-            this.#calcSheet.emit('formula-arg-changed');
-
-            let cells = {
-                'awaria': [
-                    [this.#calcSheet.getCell('strata-awaria-b1-polowa'), this.#calcSheet.getCell('strata-awaria-b2-polowa')],
-                    [this.#calcSheet.getCell('strata-awaria-b1-koniec'), this.#calcSheet.getCell('strata-awaria-b2-koniec')]
-                ],
-                'naprawa': [
-                    [this.#calcSheet.getCell('strata-naprawa-b1-polowa'), this.#calcSheet.getCell('strata-naprawa-b2-polowa')],
-                    [this.#calcSheet.getCell('strata-naprawa-b1-koniec'), this.#calcSheet.getCell('strata-naprawa-b2-koniec')]
-                ]
-            };
-
-            let cacheValue = {
-                'awaria': [[0, 0], [0, 0]],
-                'naprawa': [[0, 0], [0, 0]],
-            }
-
-            let shiftHalves = ShiftTable.getShiftHalves(ShiftTable.getDayShift());
-
-            for (let downtime of this.#downtimes.entries) {
-                let firstHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[0]) ?? { minutes: 0 }).minutes;
-                let secondHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[1]) ?? { minutes: 0 }).minutes;
-
-                cacheValue[downtime.typ][0][downtime.bramka - 1] += firstHalfMinutes;
-                cacheValue[downtime.typ][1][downtime.bramka - 1] += secondHalfMinutes;
-            }
-
-            for (let typ of Object.keys(cacheValue)) {
-                cells[typ][0][0].value = cacheValue[typ][0][0];
-                cells[typ][0][1].value = cacheValue[typ][0][1];
-                cells[typ][1][0].value = cacheValue[typ][1][0];
-                cells[typ][1][1].value = cacheValue[typ][1][1];
-            }
-        }, this);
-    }
 
     render() {
         return html`
@@ -471,11 +428,132 @@ export class TablicaApp extends LitElement {
             }
         }, this.renderRoot);
 
-        if (DEBUG === true) {
-            this.calcSheet = this.#calcSheet;
-        }
-
         this.#calcSheet.init();
+
+        this.#connectDowntimesToCalcSheet();
+
+        this.#loadDowntimesFromBoxStorage();
+        this.#loadCalcSheetFromBoxStorage();
+
+        this.#connectDowntimesToBoxStorage();
+        this.#connectCalcSheetToBoxStorage();
+    }
+
+    #connectDowntimesToCalcSheet() {
+        this.#downtimes.addEventListener('entries-changed', () => {
+            this.#calcSheet.emit('formula-arg-changed');
+
+            let cells = {
+                'awaria': [
+                    [this.#calcSheet.getCell('strata-awaria-b1-polowa'), this.#calcSheet.getCell('strata-awaria-b2-polowa')],
+                    [this.#calcSheet.getCell('strata-awaria-b1-koniec'), this.#calcSheet.getCell('strata-awaria-b2-koniec')]
+                ],
+                'naprawa': [
+                    [this.#calcSheet.getCell('strata-naprawa-b1-polowa'), this.#calcSheet.getCell('strata-naprawa-b2-polowa')],
+                    [this.#calcSheet.getCell('strata-naprawa-b1-koniec'), this.#calcSheet.getCell('strata-naprawa-b2-koniec')]
+                ]
+            };
+
+            let cacheValue = {
+                'awaria': [[0, 0], [0, 0]],
+                'naprawa': [[0, 0], [0, 0]],
+            }
+
+            let shiftHalves = ShiftTable.getShiftHalves(ShiftTable.getDayShift());
+
+            for (let downtime of this.#downtimes.entries) {
+                let firstHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[0]) ?? { minutes: 0 }).minutes;
+                let secondHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[1]) ?? { minutes: 0 }).minutes;
+
+                cacheValue[downtime.typ][0][downtime.bramka - 1] += firstHalfMinutes;
+                cacheValue[downtime.typ][1][downtime.bramka - 1] += secondHalfMinutes;
+            }
+
+            for (let typ of Object.keys(cacheValue)) {
+                cells[typ][0][0].value = cacheValue[typ][0][0];
+                cells[typ][0][1].value = cacheValue[typ][0][1];
+                cells[typ][1][0].value = cacheValue[typ][1][0];
+                cells[typ][1][1].value = cacheValue[typ][1][1];
+            }
+        }, this);
+    }
+
+    #connectCalcSheetToBoxStorage() {
+        let box = new NumberBox();
+        box.expiresAfter = null;
+
+        [
+            'takt',
+            'cel-polowa',
+            'cel-koniec',
+            'cel-linii-polowa',
+            'cel-linii-koniec',
+            'braki-polowa',
+            'braki-koniec',
+            'czyszczenie-b1-polowa',
+            'czyszczenie-b2-polowa',
+            'czyszczenie-b1-koniec',
+            'czyszczenie-b2-koniec'
+        ].map(cellId => {
+            this.#calcSheet.getCell(cellId)?.addEventListener('value-changed', (value) => {
+                box.expiresAfter = null;
+                box.value = Number.parseFloat(value);
+
+                BoxStorage.set('cells-' + cellId, box);
+            });
+        });
+
+        ['sztuki-we-wozku-polowa', 'sztuki-we-wozku-koniec'].map(cellId => {
+            this.#calcSheet.getCell(cellId)?.addEventListener('value-changed', (value) => {
+                box.expiresAfter = 'shift';
+                box.value = Number.parseFloat(value);
+
+                BoxStorage.set('cells-' + cellId, box);
+            });
+        });
+    }
+
+    #connectDowntimesToBoxStorage() {
+        this.#downtimes.addEventListener('entries-changed', () => {
+            // clear all old entries from box storage
+            for (let key of BoxStorage.enumerateKeys(/downtime-.+/)) {
+                BoxStorage.remove(key);
+            }
+
+            let box = new DowntimeBox();
+            box.expiresAfter = 'shift';
+
+            for (let downtime of this.#downtimes.entries) {
+                box.value = downtime;
+                BoxStorage.set('downtime-' + downtime.id, box);
+            }
+        }, this);
+    }
+
+    #loadCalcSheetFromBoxStorage() {
+        let box = new NumberBox();
+        box.expiresAfter = null;
+
+        for (let key of BoxStorage.enumerateKeys(/cells-.+/)) {
+            if (BoxStorage.get(key, box)) {
+                let cellId = key.slice('cells-'.length);
+
+                let cell = this.#calcSheet.getCell(cellId);
+                if (cell !== null) {
+                    cell.value = box.value;
+                }
+            }
+        }
+    }
+
+    #loadDowntimesFromBoxStorage() {
+        let box = new DowntimeBox();
+
+        for (let key of BoxStorage.enumerateKeys(/downtime-.+/)) {
+            if (BoxStorage.get(key, box) === true) {
+                this.#downtimes.push(box.value);
+            }
+        }
     }
 
     /**

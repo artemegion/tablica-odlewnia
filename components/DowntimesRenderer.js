@@ -86,10 +86,14 @@ export class DowntimesRenderer extends LitElement {
         user-select: none;
 
         margin: -0.5em;
-        margin-left: 0;
+        margin-left: 4px;
         padding: 0.5em;
 
         background-color: var(--field-bg-color);
+    }
+
+    .downtime-uwagi {
+        margin-top: 1em;
     }
     `;
 
@@ -111,7 +115,7 @@ export class DowntimesRenderer extends LitElement {
 
         const renderBramka = ((typ, bramka, firstRendered) => {
             let przestojeOfTyp = przestoje.filter(p => p.typ === typ && p.bramka === bramka);
-            let przestojeTotalMinutes = TimeRange.union(...przestojeOfTyp.map(p => p.timeRange)).minutes;
+            let przestojeTotalMinutes = TimeRange.sumMinutes(przestojeOfTyp.map(p => p.timeRange));
             let przestojeTotalMinutesAsFractionOfHour = (przestojeTotalMinutes / 60).toFixed(2);
 
             return html`
@@ -126,12 +130,19 @@ export class DowntimesRenderer extends LitElement {
                     <div class="downtime-uwagi-column">
                         ${firstRendered ? html`<div class="downtime-column-label">UWAGI</div>` : undefined}
                         ${przestojeOfTyp.map(p => html`
-                        <div class="downtime flex-row flex-gap-s justify-start align-stretch">
-                            <div class="downtime-uwagi basis-1-1">${p.uwagi}</div>
-                            <div class="downtime-time-span basis-auto">
-                                ${p.timeRange.toString()}
+                        <div class="downtime">
+                            <div class="flex-column justify-start align-stretch flex-gap">
+                                <div class="basis-auto flex-row flex-gap-s">
+                                    <div class="downtime-time-span basis-1-1">
+                                        ${p.timeRange.toString().replace('-', '—')}
+                                    </div>
+
+                                    <div @click=${this.#onEditClick.bind(this, p.id)} class="edit-button basis-auto">✏️</div>
+                                    <div @click=${this.#onDeleteClick.bind(this, p.id)} class="edit-button basis-auto">❌</div>
+                                </div>
+
+                                <div class="basis-auto downtime-uwagi">${p.uwagi}</div>
                             </div>
-                            <div @click=${this.#onEditClick.bind(this, p.id)} class="edit-button basis-auto">Edytuj</div>
                         </div>
                         `)}
                     </div>
@@ -156,9 +167,16 @@ export class DowntimesRenderer extends LitElement {
             let bramka1HTML = bramka1Przestoje.length < 1 ? undefined : renderBramka(typ, 1, true);
             let bramka2HTML = bramka2Przestoje.length < 1 ? undefined : renderBramka(typ, 2, bramka1Przestoje.length < 1);
 
+            // Calculate total downtime for bramka1, round it to 2 decimal places.
+            // Do the same for bramka2. Add them together, round to 2 decimal places
+            let bramka1Fraction = Number.parseFloat((TimeRange.sumMinutes(bramka1Przestoje.filter(p => p.typ === typ).map(p => p.timeRange)) / 60).toFixed(2));
+            let bramka2Fraction = Number.parseFloat((TimeRange.sumMinutes(bramka2Przestoje.filter(p => p.typ === typ).map(p => p.timeRange)) / 60).toFixed(2));
+
+            let przestojeTotalMinutesAsFractionOfHour = (bramka1Fraction + bramka2Fraction).toFixed(2);
+
             return html`
             <fieldset class="align-stretch flex-gap-s flex-col">
-                <legend>${typToName[typ]}&nbsp;(${typToCode[typ]})</legend>
+                <legend>${typToName[typ]}&nbsp;(${typToCode[typ]}) — ${przestojeTotalMinutesAsFractionOfHour}h</legend>
                 ${bramka1HTML}
                 ${bramka2HTML}
             </fieldset>
@@ -199,6 +217,15 @@ export class DowntimesRenderer extends LitElement {
      */
     #onEditClick(id) {
         this.downtimes.emit('edit-requested', id);
+    }
+
+    /**
+     * 
+     * @param {string} id 
+     */
+    #onDeleteClick(id) {
+        // this.downtimes.emit('delete-requested', id);
+        this.downtimes.removeById(id);
     }
 }
 customElements.define('downtimes-renderer', DowntimesRenderer);

@@ -1,10 +1,6 @@
 @import "/tablica-odlewnia/styles/flex.css";
 
 @import "/tablica-odlewnia/styles/themes/theme.css";
-@import "/tablica-odlewnia/styles/themes/dark.css";
-@import "/tablica-odlewnia/styles/themes/blue.css";
-@import "/tablica-odlewnia/styles/themes/light.css";
-/* @import "/tablica-odlewnia/styles/themes/green.css"; */
 
 @import "/tablica-odlewnia/styles/elements/body.css";
 @import "/tablica-odlewnia/styles/elements/button.css";
