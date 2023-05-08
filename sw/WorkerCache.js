@@ -112,7 +112,7 @@ export class WorkerCache {
         if (typeof sha !== 'string') sha = await this.getCachedCommit();
 
         const cache = await caches.open(sha);
-        return await cache.match(path);
+        return await cache.match(path, { ignoreMethod: true, ignoreSearch: true, ignoreVary: true });
     }
 
     /**
