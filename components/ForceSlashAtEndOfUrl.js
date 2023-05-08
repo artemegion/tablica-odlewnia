@@ -14,7 +14,7 @@ export class ForceSlashAtEndOfUrl extends LitElement {
     connectedCallback() {
         super.connectedCallback();
 
-        if (!location.href.endsWith('/')) {
+        if (!location.href.endsWith('index.html') && !location.href.endsWith('/')) {
             location.replace(location.href + '/');
         }
     }

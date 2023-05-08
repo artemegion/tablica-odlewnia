@@ -1,4 +1,5 @@
 import { LitElement, css, html } from '../vendor/lit.js';
+import './ForceSlashAtEndOfUrl.js';
 import './AppUpdatesListener.js';
 import './AppTitlebar.js';
 import './ShiftHoursBubbles.js';
@@ -72,6 +73,7 @@ export class TablicaApp extends LitElement {
     render() {
         return html`
             <link rel="stylesheet" href="/tablica-odlewnia/styles/index.css" />
+            <force-slash-at-end-of-url></force-slash-at-end-of-url>
             <app-updates-listener></app-updates-listener>
 
             <app-titlebar></app-titlebar>
