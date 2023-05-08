@@ -4,7 +4,7 @@
   "short_name": "Tablica odlewnia",
   "description": "Łatwo wypełnij tablicę na odlewni tłoków",
   "scope": "/tablica-odlewnia/",
-  "start_url": "/tablica-odlewnia/",
+  "start_url": "/tablica-odlewnia/index.html",
   "background_color": "#000000",
   "theme_color": "#000000",
   "display": "standalone",
