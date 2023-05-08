@@ -14,12 +14,9 @@ export class Util {
     requestUrlToFilePath(url, repository, username) {
         let pURL = new URL(url);
 
-        // DEBUG === true
-        // ? pURL.hostname === '127.0.0.1' && pURL.pathname.startsWith('/' + GitHub.repository)
-
-        if (pURL.hostname === (username + '.github.io') && pURL.pathname.startsWith('/' + repository)) {
-            pURL.pathname = pURL.pathname.slice(repository.length + 1);
+        if (pURL.hostname === (username + '.github.io')) {
             if (pURL.pathname === '/') pURL.pathname = '/index.html';
+            if (pURL.pathname.startsWith('/' + repository)) pURL.pathname = pURL.pathname.slice(repository.length + 1);
 
             return pURL.pathname;
         } else {
