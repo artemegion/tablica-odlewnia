@@ -1,0 +1,44 @@
+.table {
+    box-sizing: border-box;
+
+    display: grid;
+    grid-template-columns: var(--table-columns);
+
+    margin-top: 1em;
+
+    background-color: var(--field-bg-color-disabled);
+
+    border: 1px solid var(--field-border-color);
+    border-radius: 15px;
+}
+
+.title {
+    grid-column: span 2;
+
+    padding: 0.5em;
+
+    text-align: center;
+    font-weight: bold;
+    font-size: var(--font-l);
+
+    background-color: var(--field-bg-color);
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.cell {
+    padding: 0.5em;
+}
+
+.cell.header {
+    background-color: var(--field-bg-color);
+    border: none !important;
+}
+
+.cell:nth-child(even) {
+    border-right: 1px solid var(--field-border-color);
+}
+
+.cell:not(:nth-last-child(1)):not(.cell:nth-last-child(2)) {
+    border-bottom: 1px solid var(--field-border-color);
+}

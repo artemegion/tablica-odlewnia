@@ -2,14 +2,8 @@ button {
     display: block;
     box-sizing: border-box;
 
-    padding: 0.5em;
-    padding-top: 0.7em;
-
-    /* fix the button having different height then the input due to input bottom border */
-    padding-top: calc(0.7em + 2px);
-    padding-bottom: calc(0.5em + 4px);
-
     margin: 0;
+    padding: 0.7em;
 
     line-height: 1;
 
@@ -19,4 +13,73 @@ button {
     font-size: var(--font-size);
 
     border: none;
+    border-radius: 15px;
+
+    transition: border-radius 0.1s ease-out;
+}
+
+button.left {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+button.right {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+button.bottom {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+button.top {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+button.middle {
+    border-radius: 0px;
+}
+
+button.join-to-bottom:not(.left):not(.right) {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+button.left.join-to-bottom {
+    border-bottom-left-radius: 0px;
+}
+
+button.right.join-to-bottom {
+    border-bottom-right-radius: 0px;
+}
+
+button.join-to-top:not(.left):not(.right) {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+button.left.join-to-top {
+    border-top-left-radius: 0px;
+}
+
+button.right.join-to-top {
+    border-top-right-radius: 0px;
+}
+
+button.subtle {
+    background-color: var(--field-bg-color-disabled);
+}
+
+button.expander-button {
+    padding: 0;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+
+    margin: 0;
+    margin-top: 0.2em;
+
+    font-size: var(--font-size-s);
+    text-align: center;
 }

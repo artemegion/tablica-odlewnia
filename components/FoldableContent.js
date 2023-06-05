@@ -1,3 +1,4 @@
+import { booleanConverter } from '../lib/lit/booleanConverter.js';
 import { LitElement, css, html } from '../vendor/lit.js';
 
 export class FoldableContent extends LitElement {
@@ -5,23 +6,7 @@ export class FoldableContent extends LitElement {
         folded: {
             type: Boolean,
             reflect: true,
-            converter: {
-                // the default converter returns true when the attribute is present, regardless of its value
-                // this converter returns true only if the attribute is set to "true" or ""
-                fromAttribute: (value, type) => {
-                    // `value` is a string
-                    // Convert it to a value of type `type` and return it
-
-                    return value?.toLowerCase() === "true" || value?.toLowerCase() === "";
-                },
-                toAttribute: (value, type) => {
-                    // `value` is of type `type`
-                    // Convert it to a string and return it
-
-                    if (value === true) return "true"
-                    else return null;
-                }
-            }
+            converter: booleanConverter
         },
 
         unfoldedHeight: {

@@ -1,6 +1,6 @@
 import { LitElement, css, html } from '../vendor/lit.js';
-import { Downtimes } from '../lib/Downtimes.js';
 import { TimeRange } from '../lib/TimeRange.js';
+import { TablicaState } from '../lib/state/TablicaState.js';
 
 /**
  * 
@@ -8,11 +8,14 @@ import { TimeRange } from '../lib/TimeRange.js';
 export class DowntimesRenderer extends LitElement {
     static styles = css`
     .downtime-total-header {
-        padding: 0.4em;
-        padding-top: 0.5em;
+        padding: 0.5em;
+        padding-top: 0.8em;
 
         background-color: var(--field-bg-color-disabled);
         border-bottom: 1px solid var(--field-border-color-disabled);
+
+        border-top-left-radius: 14px;
+        border-top-right-radius: 14px;
 
         text-align: center;
         font-size: var(--font-size-xs);
@@ -30,11 +33,14 @@ export class DowntimesRenderer extends LitElement {
     }
 
     .downtime-total-minutes {
-        padding-bottom: 0.5em;
+        padding-bottom: 1em;
 
         background-color: var(--field-bg-color-disabled);
-        border-bottom: 4px solid var(--field-border-color-disabled);
         color: var(--color-dim);
+
+        border-bottom-left-radius: 14px;
+        border-bottom-right-radius: 14px;
+        /* border-bottom: 4px solid var(--field-border-color-disabled); */
 
         font-size: 6pt;
         text-align: center;
@@ -79,6 +85,8 @@ export class DowntimesRenderer extends LitElement {
         margin-bottom: 0.25em;
 
         background-color: var(--field-bg-color-disabled);
+
+        border-radius: 14px;
     }
 
     .downtime .edit-button {
@@ -90,6 +98,20 @@ export class DowntimesRenderer extends LitElement {
         padding: 0.5em;
 
         background-color: var(--field-bg-color);
+
+        border-radius: 14px;
+    }
+
+    .edit-button.edit {
+        border-bottom-right-radius: 0px;
+        border-bottom-left-radius: 0px;
+
+        border-bottom: 1px solid var(--field-bg-color-disabled);
+    }
+
+    .edit-button.delete {
+        border-top-right-radius: 0px;
+        border-top-left-radius: 0px;
     }
 
     .downtime-uwagi {
@@ -97,21 +119,16 @@ export class DowntimesRenderer extends LitElement {
     }
     `;
 
-    static properties = {
-        downtimes: {
-            type: Downtimes,
-            reflect: false
-        }
-    };
-
     constructor() {
         super();
-        this.downtimes = new Downtimes();
     }
 
-    render() {
+    /** @type {TablicaState | undefined} */ state;
 
-        let przestoje = this.downtimes.entries;
+    render() {
+        if (this.state === undefined) return undefined;
+
+        let przestoje = this.state.downtimes.entries;
 
         const renderBramka = ((typ, bramka, firstRendered) => {
             let przestojeOfTyp = przestoje.filter(p => p.typ === typ && p.bramka === bramka);
@@ -137,11 +154,13 @@ export class DowntimesRenderer extends LitElement {
                                         ${p.timeRange.toString().replace('-', '—')}
                                     </div>
 
-                                    <div @click=${this.#onEditClick.bind(this, p.id)} class="edit-button basis-auto">✏️</div>
-                                    <div @click=${this.#onDeleteClick.bind(this, p.id)} class="edit-button basis-auto">❌</div>
+                                    <div @click=${this.#onEditClick.bind(this, p.id)} class="edit-button edit basis-auto">✏️</div>
                                 </div>
 
-                                <div class="basis-auto downtime-uwagi">${p.uwagi}</div>
+                                <div class="basis-auto flex-row align-start downtime-uwagi">
+                                    <div class="basis-1-1">${p.uwagi}</div>
+                                    <div @click=${this.#onDeleteClick.bind(this, p.id)} class="edit-button delete basis-auto">❌</div>
+                                </div>
                             </div>
                         </div>
                         `)}
@@ -191,18 +210,13 @@ export class DowntimesRenderer extends LitElement {
         `;
     }
 
-    /**
-     * 
-     * @param {Map} t 
-     */
-    updated(t) {
-        super.updated(t);
+    firstUpdated(t) {
+        super.firstUpdated(t);
 
-        if (t.has('downtimes')) {
-            t.get('downtimes')?.off('entries-changed', this.#onDowntimesChanged);
-            this.downtimes.on('entries-changed', this.#onDowntimesChanged, this);
-        }
+        this.state.downtimes.on('entries-changed', this.#onDowntimesChanged, this);
     }
+
+
 
     /**
      * 
@@ -216,7 +230,7 @@ export class DowntimesRenderer extends LitElement {
      * @param {string} id 
      */
     #onEditClick(id) {
-        this.downtimes.emit('edit-requested', id);
+        this.state.downtimes.emit('edit-requested', id);
     }
 
     /**
@@ -224,8 +238,8 @@ export class DowntimesRenderer extends LitElement {
      * @param {string} id 
      */
     #onDeleteClick(id) {
-        // this.downtimes.emit('delete-requested', id);
-        this.downtimes.removeById(id);
+        // this.state.downtimes.emit('delete-requested', id);
+        this.state.downtimes.removeById(id);
     }
 }
 customElements.define('downtimes-renderer', DowntimesRenderer);

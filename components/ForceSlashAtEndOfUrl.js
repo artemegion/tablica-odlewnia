@@ -1,4 +1,4 @@
-import { LitElement } from '../vendor/lit.js';
+import { html, css, LitElement } from '../vendor/lit.js';
 
 export class ForceSlashAtEndOfUrl extends LitElement {
     static styles = css`
