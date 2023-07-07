@@ -17,6 +17,8 @@ export class AppUpdatesListener extends LitElement {
             color: var(--top-notif-color);
 
             text-align: center;
+
+            border-radius: 14px;
         }
     `;
 

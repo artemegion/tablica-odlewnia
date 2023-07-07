@@ -83,39 +83,32 @@ export class DropDown extends LitElement {
             text-align: center;
 
             outline: none;
-            border: none;
-            border-style: solid;
-            border-width: 0;
-            border-bottom-width: 4px;
+            border: 1px solid var(--field-border-color);
             border-color: var(--field-border-color);
+            border-radius: 15px;
 
-            transition: border-color 0.1s ease-out;
+            transition: border-color 0.1s ease-out, border-radius 0.1s ease-out;
         }
 
         .header[opened="true"] {
-            border-color: var(--field-border-color-focus);
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius: 0px;
         }
 
         .header:after {
             content: "▼";
             position: relative;
             float: right;
-            color: transparent;
         }
-
+        
         .header:before {
             content: "▼";
             position: relative;
             float: left;
+            color: transparent;
         }
 
         .item {
-            /*
-            flex-basis: auto;
-            flex-grow: 0;
-            flex-shrink: 0;
-            */
-
             display: block;
             box-sizing: border-box;
 
@@ -141,24 +134,18 @@ export class DropDown extends LitElement {
             font-size: var(--font-size);
             text-align: center;
 
-            border: none;
-            border-bottom: 1px solid var(--item-border-color);
+            border: 1px solid var(--item-border-color);
+            border-top: none;
+        }
+
+        .item:last-of-type {
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
         }
 
         foldable-content {
             position: absolute;
             width: var(--client-width);
-
-            /*
-
-            display: flex;
-            flex-direction: row;
-
-            justify-content: flex-start;
-            align-items: flex-start;
-
-            flex-wrap: wrap;
-            */
         }
 
         foldable-content.grid {
@@ -170,7 +157,6 @@ export class DropDown extends LitElement {
 
         foldable-content.grid .item {
             width: auto;
-            /* aspect-ratio: 1.0; */
         }
     `;
 

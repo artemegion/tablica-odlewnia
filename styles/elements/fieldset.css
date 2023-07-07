@@ -5,7 +5,7 @@ fieldset {
     justify-content: flex-start;
     align-items: center;
 
-    gap: 1em;
+    gap: 0.5em;
 
     margin: 0;
     margin-bottom: 1em;
@@ -13,4 +13,26 @@ fieldset {
     padding: 0;
 
     border: none;
+}
+
+fieldset input:first-of-type:not(:only-of-type) {
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+fieldset input:first-of-type:not(:only-of-type).join-to-bottom {
+    border-bottom-left-radius: 0px;
+}
+
+fieldset input:last-of-type:not(:only-of-type) {
+    border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+fieldset input:last-of-type:not(:only-of-type).join-to-bottom {
+    border-bottom-right-radius: 0px;
+}
+
+fieldset input:not(:first-of-type):not(:last-of-type):not(:only-of-type) {
+    border-radius: 0px;
 }
