@@ -7,8 +7,10 @@ import './routing/PageNavigation.js';
 import './TablicaApp/TablicaKody.js';
 import './TablicaApp/TablicaMinuty.js';
 import './TablicaApp/TablicaForm.js';
+import './TablicaApp/TablicaFormAutomaty.js';
 
 import { TablicaState } from '../lib/state/TablicaState.js';
+import { AutomatyTablicaState } from '../lib/state/TablicaState.js';
 import { ShiftTable } from '../lib/ShiftTable.js';
 import { TimeRange } from '../lib/TimeRange.js';
 import { BoxStorage } from '../lib/storage/BoxStorage.js';
@@ -48,10 +50,12 @@ export class TablicaApp3 extends LitElement {
 
     constructor() {
         super();
-        this.state = new TablicaState();
+        this.state_otto = new TablicaState();
+        this.state_auto = new AutomatyTablicaState();
     }
 
-    /** @type {TablicaState} */ state;
+    /** @type {TablicaState} */ state_otto;
+    /** @type {AutomatyTablicaState} */ state_auto;
 
     render() {
 
@@ -63,8 +67,12 @@ export class TablicaApp3 extends LitElement {
             <app-titlebar></app-titlebar>
             
             <page-navigation page="tablica">
-                <div slot="🪧&nbsp;Tablica">
-                    <tablica-form .state=${this.state}></tablica-form>
+                <div slot="🪧&nbsp;Ręczna">
+                    <tablica-form .state=${this.state_otto}></tablica-form>
+                </div>
+
+                <div slot="🪧&nbsp;Automaty">
+                    <tablica-form-automaty .state=${this.state_auto}></tablica-form-automaty>
                 </div>
 
                 <div slot="⌚&nbsp;Minuty">
@@ -94,7 +102,7 @@ export class TablicaApp3 extends LitElement {
     }
 
     #bindDowntimesToSheet() {
-        this.state.downtimes.on('entries-changed', () => {
+        this.state_otto.downtimes.on('entries-changed', () => {
 
             let cells = {
                 'awaria': [
@@ -116,7 +124,7 @@ export class TablicaApp3 extends LitElement {
 
             let shiftHalves = ShiftTable.getShiftHalves(ShiftTable.getDayShift());
 
-            for (let downtime of this.state.downtimes.entries) {
+            for (let downtime of this.state_otto.downtimes.entries) {
                 // calculate how many minutes the downtime takes place in each half of the current shift
                 let firstHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[0]) ?? { minutes: 0 }).minutes;
                 let secondHalfMinutes = (TimeRange.intersect(downtime.timeRange, shiftHalves[1]) ?? { minutes: 0 }).minutes;
@@ -126,10 +134,10 @@ export class TablicaApp3 extends LitElement {
             }
 
             for (let typ of Object.keys(values)) {
-                this.state.sheet.setValue(cells[typ][0][0], values[typ][0][0]);
-                this.state.sheet.setValue(cells[typ][0][1], values[typ][0][1]);
-                this.state.sheet.setValue(cells[typ][1][0], values[typ][1][0]);
-                this.state.sheet.setValue(cells[typ][1][1], values[typ][1][1]);
+                this.state_otto.sheet.setValue(cells[typ][0][0], values[typ][0][0]);
+                this.state_otto.sheet.setValue(cells[typ][0][1], values[typ][0][1]);
+                this.state_otto.sheet.setValue(cells[typ][1][0], values[typ][1][0]);
+                this.state_otto.sheet.setValue(cells[typ][1][1], values[typ][1][1]);
             }
         }, this);
     }
@@ -154,18 +162,27 @@ export class TablicaApp3 extends LitElement {
             'czyszczenie-b2-koniec': null
         };
 
-        this.state.sheet.on('value-changed', (cellId, oldValue) => {
+        this.state_otto.sheet.on('value-changed', (cellId, oldValue) => {
             if (cellId in cellsToStore) {
                 box.expiresAfter = cellsToStore[cellId];
-                box.value = this.state.sheet.getValue(cellId);
+                box.value = this.state_otto.sheet.getValue(cellId);
 
                 BoxStorage.set('cells-' + cellId, box);
+            }
+        });
+
+        this.state_auto.sheet.on('value-changed', (cellId, oldValue) => {
+            if (cellId in cellsToStore) {
+                box.expiresAfter = cellsToStore[cellId];
+                box.value = this.state_auto.sheet.getValue(cellId);
+
+                BoxStorage.set('automaty-cells-' + cellId, box);
             }
         });
     }
 
     #bindDowntimesToBoxStorage() {
-        this.state.downtimes.on('entries-changed', () => {
+        this.state_otto.downtimes.on('entries-changed', () => {
             // clear all old entries from box storage
             for (let key of BoxStorage.enumerateKeys(/downtime-.+/)) {
                 BoxStorage.remove(key);
@@ -174,7 +191,7 @@ export class TablicaApp3 extends LitElement {
             let box = new DowntimeBox();
             box.expiresAfter = 'shift';
 
-            for (let downtime of this.state.downtimes.entries) {
+            for (let downtime of this.state_otto.downtimes.entries) {
                 box.value = downtime;
                 BoxStorage.set('downtime-' + downtime.id, box);
             }
@@ -185,11 +202,19 @@ export class TablicaApp3 extends LitElement {
         let box = new NumberBox();
         box.expiresAfter = null;
 
-        for (let key of BoxStorage.enumerateKeys(/cells-.+/)) {
+        for (let key of BoxStorage.enumerateKeys(/^cells-.+/)) {
             if (BoxStorage.get(key, box)) {
                 let cellId = key.slice('cells-'.length);
 
-                this.state.sheet.setValue(cellId, box.value);
+                this.state_otto.sheet.setValue(cellId, box.value);
+            }
+        }
+
+        for (let key of BoxStorage.enumerateKeys(/^automaty-cells-.+/)) {
+            if (BoxStorage.get(key, box)) {
+                let cellId = key.slice('automaty-cells-'.length);
+
+                this.state_auto.sheet.setValue(cellId, box.value);
             }
         }
     }
@@ -199,7 +224,7 @@ export class TablicaApp3 extends LitElement {
 
         for (let key of BoxStorage.enumerateKeys(/downtime-.+/)) {
             if (BoxStorage.get(key, box) === true) {
-                this.state.downtimes.push(box.value);
+                this.state_otto.downtimes.push(box.value);
             }
         }
     }
