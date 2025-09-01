@@ -85,8 +85,11 @@ export class TablicaApp3 extends LitElement {
             </page-navigation>
 
             <footer style="margin-bottom: -4.5em; margin-top: 3em;">
-                <div>Copyright ${new Date().getFullYear()} Paweł Ignasiak</div>
-                <div>Licensed under the MIT License. <a href="https://www.github.com/artemegion/tablica-odlewnia">GitHub</a></div>
+                <div>Copyright © ${new Date().getFullYear()} Paweł Ignasiak</div>
+                <div>Licensed under the <a href="https://github.com/artemegion/tablica-odlewnia/blob/main/LICENSE">MIT License</a>. <a href="https://www.github.com/artemegion/tablica-odlewnia">GitHub</a></div>
+                <br />
+                <div>Made using <a href="https://lit.dev/">Lit</a></div>
+                <div>Copyright Google LLC. Code licensed under <a href="https://github.com/lit/lit/blob/main/LICENSE">BSD-3-Clause</a>.</div>
             </footer>
         `;
     }
