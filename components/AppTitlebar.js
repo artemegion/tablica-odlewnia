@@ -48,7 +48,7 @@ export class AppTitlebar extends LitElement {
                 <span id="padding-emoji">⬇️</span>
                 <theme-selector></theme-selector>
             </div>
-            <shift-this-week />
+            <shift-this-week></shift-this-week>
         `;
     }
 }
