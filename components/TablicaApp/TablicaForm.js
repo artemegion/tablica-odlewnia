@@ -1,5 +1,6 @@
 import { html, css, LitElement } from '../../vendor/lit.js';
 
+import '../SecondaryParametersWizard.js';
 import '../DowntimesWizard.js';
 import '../DowntimesRenderer.js';
 
@@ -27,6 +28,12 @@ export class TablicaForm extends LitElement {
             </fieldset>
 
             <foldable-content folded=${!this.state.showSecondaryParameters}>
+            <hr style="color: white; background-color: var(--color-3); height: 1px;" width="100%" size="2">
+
+            <fieldset style="margin-top: 1em;">
+                <secondary-parameters-wizard style="flex-grow: 1;" .state=${this.state}></secondary-parameters-wizard>
+            </fieldset>
+
             <fieldset style="margin-top: 1em;">
                 <legend>Takt</legend>
                 <input id="takt" title="Takt" placeholder="" type="number" />
