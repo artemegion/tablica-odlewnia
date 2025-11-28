@@ -54,101 +54,122 @@ export class SecondaryParametersWizard extends LitElement {
         }
     `;
 
+    /*
+        83L149+2A3=200
+        88L111=240    480
+        82L182=240    480
+        89L106 480
+        89L128+1 500
+        81L170A1 360
+        83L149 155    310
+        83L192 155    310
+        83L150 500
+        89L130+1 500
+        82L244  330
+    */
+
+    /**
+    * @typedef SecondaryParameters
+    * @prop {String} asortyment 
+    * @prop {number} takt 
+    * @prop {number} celPolowa 
+    * @prop {number} celKoniec cel 100%
+    * @prop {number} celLiniiPolowa 
+    * @prop {number} celLiniiKoniec norma
+    * @prop {number} brakiPolowa 
+    * @prop {number} brakiKoniec 
+    */
+
+    /** @type {Array<SecondaryParameters>} */
     static secondaryParameters = [
         {
-            asortyment: "82L207",
-
-            1: {
-                takt: 0.85,
-                "cel-polowa": 282,
-                "cel-koniec": 565,
-                "cel-linii-polowa": 245,
-                "cel-linii-koniec": 490,
-                "braki-polowa": 4,
-                "braki-koniec": 4
-            },
-            2: {
-                takt: 0.85,
-                "cel-polowa": 565,
-                "cel-koniec": 1125,
-                "cel-linii-polowa": 490,
-                "cel-linii-koniec": 980,
-                "braki-polowa": 8,
-                "braki-koniec": 8
-            }
-        },
-
-        {
-            asortyment: "82L209",
-
-            1: {
-                takt: 0.85,
-                "cel-polowa": 282,
-                "cel-koniec": 565,
-                "cel-linii-polowa": 245,
-                "cel-linii-koniec": 490,
-                "braki-polowa": 4,
-                "braki-koniec": 4
-            },
-            2: {
-                takt: 0.85,
-                "cel-polowa": 565,
-                "cel-koniec": 1125,
-                "cel-linii-polowa": 490,
-                "cel-linii-koniec": 980,
-                "braki-polowa": 8,
-                "braki-koniec": 8
-            }
-        },
-
-        {
             asortyment: "74L103",
-
-            1: {
-                takt: 1.125,
-                "cel-polowa": 213,
-                "cel-koniec": 427,
-                "cel-linii-polowa": 180,
-                "cel-linii-koniec": 360,
-                "braki-polowa": 3,
-                "braki-koniec": 3
-            },
-
-            2: {
-                takt: 1.125,
-                "cel-polowa": 427,
-                "cel-koniec": 850,
-                "cel-linii-polowa": 360,
-                "cel-linii-koniec": 720,
-                "braki-polowa": 6,
-                "braki-koniec": 6
-            }
+            takt: 1.125,
+            celPolowa: 213,
+            celKoniec: 427,
+            celLiniiPolowa: 180,
+            celLiniiKoniec: 360,
+            brakiPolowa: 3,
+            brakiKoniec: 3
         },
 
         {
             asortyment: "74L112",
+            takt: 1.125,
+            celPolowa: 213,
+            celKoniec: 427,
+            celLiniiPolowa: 180,
+            celLiniiKoniec: 360,
+            brakiPolowa: 3,
+            brakiKoniec: 3
+        },
 
-            1: {
-                takt: 1.125,
-                "cel-polowa": 213,
-                "cel-koniec": 427,
-                "cel-linii-polowa": 180,
-                "cel-linii-koniec": 360,
-                "braki-polowa": 3,
-                "braki-koniec": 3
-            },
+        {
+            asortyment: "82L207",
+            takt: 0.85,
+            celPolowa: 282,
+            celKoniec: 565,
+            celLiniiPolowa: 245,
+            celLiniiKoniec: 490,
+            brakiPolowa: 4,
+            brakiKoniec: 4
+        },
 
-            2: {
-                takt: 1.125,
-                "cel-polowa": 427,
-                "cel-koniec": 850,
-                "cel-linii-polowa": 360,
-                "cel-linii-koniec": 720,
-                "braki-polowa": 6,
-                "braki-koniec": 6
-            }
+        {
+            asortyment: "82L209",
+            takt: 0.85,
+            celPolowa: 282,
+            celKoniec: 565,
+            celLiniiPolowa: 245,
+            celLiniiKoniec: 490,
+            brakiPolowa: 4,
+            brakiKoniec: 4
+        },
+
+        {
+            asortyment: "82L244",
+            takt: 1.2,
+            celPolowa: 200,
+            celKoniec: 400,
+            celLiniiPolowa: 164,
+            celLiniiKoniec: 330,
+            brakiPolowa: 3,
+            brakiKoniec: 3
+        },
+
+        {
+            asortyment: "83L149",
+            takt: 1.1,
+            celPolowa: 218,
+            celKoniec: 436,
+            celLiniiPolowa: 170,
+            celLiniiKoniec: 340,
+            brakiPolowa: 3,
+            brakiKoniec: 3
+        },
+
+        {
+            asortyment: "83L150",
+            takt: 0.8,
+            celPolowa: 300,
+            celKoniec: 600,
+            celLiniiPolowa: 250,
+            celLiniiKoniec: 500,
+            brakiPolowa: 4,
+            brakiKoniec: 4
+        },
+
+        {
+            asortyment: "83L192",
+            takt: 1.2,
+            celPolowa: 200,
+            celKoniec: 400,
+            celLiniiPolowa: 170,
+            celLiniiKoniec: 340,
+            brakiPolowa: 3,
+            brakiKoniec: 3
         }
-    ];
+    ]
 
     static properties = {
         folded: {
@@ -207,29 +228,30 @@ export class SecondaryParametersWizard extends LitElement {
         `;
     }
 
+    /** @param {SecondaryParameters} asortyment */
     onParametersButtonClick(asortyment) {
         let b1 = document.getElementById("parameters-wizard-form_bramka_1").checked;
         let b2 = document.getElementById("parameters-wizard-form_bramka_2").checked;
 
-        let p;
+        let multiplier;
         if (b1) {
-            p = asortyment[1];
+            multiplier = 1;
         }
         if (b2) {
-            p = asortyment[2];
+            multiplier = 2;
         }
 
-        if (p != null) {
-            this.state.sheet.setValue("takt", p["takt"]);
+        if (multiplier != null) {
+            this.state.sheet.setValue("takt", asortyment.takt);
 
-            this.state.sheet.setValue("cel-polowa", p["cel-polowa"]);
-            this.state.sheet.setValue("cel-koniec", p["cel-koniec"]);
+            this.state.sheet.setValue("cel-polowa", asortyment.celPolowa * multiplier);
+            this.state.sheet.setValue("cel-koniec", asortyment.celKoniec * multiplier);
 
-            this.state.sheet.setValue("cel-linii-polowa", p["cel-linii-polowa"]);
-            this.state.sheet.setValue("cel-linii-koniec", p["cel-linii-koniec"]);
+            this.state.sheet.setValue("cel-linii-polowa", asortyment.celLiniiPolowa * multiplier);
+            this.state.sheet.setValue("cel-linii-koniec", asortyment.celLiniiKoniec * multiplier);
 
-            this.state.sheet.setValue("braki-polowa", p["braki-polowa"]);
-            this.state.sheet.setValue("braki-koniec", p["braki-koniec"]);
+            this.state.sheet.setValue("braki-polowa", asortyment.brakiPolowa * multiplier);
+            this.state.sheet.setValue("braki-koniec", asortyment.brakiKoniec * multiplier);
         }
 
         this.fold();
