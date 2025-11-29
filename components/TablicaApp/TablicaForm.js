@@ -34,6 +34,14 @@ export class TablicaForm extends LitElement {
                 <secondary-parameters-wizard style="flex-grow: 1;" .state=${this.state}></secondary-parameters-wizard>
             </fieldset>
 
+            <fieldset>
+                <legend>Ilość bramek</legend>
+                <input @click=${this.#onIloscBramekClick.bind(this, 1)} id="ilosc-bramek-1" type="radio" name="ilosc-bramek" title="Jedna bramka" ?checked=${this.state.sheet.getValue('bramki') === 1}>
+                <label for="ilosc-bramek-1" class="basis-1-2 join-right">Jedna bramka</label>
+                <input @click=${this.#onIloscBramekClick.bind(this, 2)} id="ilosc-bramek-2" type="radio" name="ilosc-bramek" title="Dwie bramki" ?checked=${this.state.sheet.getValue('bramki') === 2}>
+                <label for="ilosc-bramek-2" class="basis-1-2 join-left">Dwie bramki</label>
+            </fieldset>
+
             <fieldset style="margin-top: 1em;">
                 <legend>Takt</legend>
                 <input id="takt" title="Takt" placeholder="" type="number" />
@@ -165,6 +173,19 @@ export class TablicaForm extends LitElement {
 
     #bindFormToSheet() {
         this.state.sheet.on('value-changed', (cellId, oldValue) => {
+            // Special case for 'bramki' which uses radio buttons instead of a single input field with a value.
+            if (cellId == 'bramki') {
+                let val = this.state.sheet.getValue(cellId);
+
+                if (val == 1) {
+                    this.renderRoot.getElementById("ilosc-bramek-1").checked = true;
+                    this.renderRoot.getElementById("ilosc-bramek-2").checked = false;
+                } else if (val == 2) {
+                    this.renderRoot.getElementById("ilosc-bramek-1").checked = false;
+                    this.renderRoot.getElementById("ilosc-bramek-2").checked = true;
+                }
+            }
+
             const cell = this.state.sheet.getCell(cellId);
             const cellElem = this.renderRoot?.getElementById(cell.id);
 
@@ -208,6 +229,14 @@ export class TablicaForm extends LitElement {
             'strata-naprawa-b2-koniec'].forEach(id => {
                 this.state.sheet.runFormulasWithArgument(id);
             });
+    }
+
+    /**
+     * @param {number} ilosc
+     */
+    #onIloscBramekClick(ilosc) {
+        console.log("#onIloscBramekClick " + ilosc);
+        this.state.sheet.setValue('bramki', ilosc);
     }
 }
 customElements.define('tablica-form', TablicaForm);

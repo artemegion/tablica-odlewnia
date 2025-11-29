@@ -149,10 +149,13 @@ export class TablicaApp3 extends LitElement {
         let box = new NumberBox();
         box.expiresAfter = null;
 
+        // cellId: expiration date
+        // shift - expires at the end of the shift it was saved in
         const cellsToStore = {
             'sztuki-we-wozku-polowa': 'shift',
             'sztuki-we-wozku-koniec': 'shift',
             'takt': null,
+            'bramki': null,
             'cel-polowa': null,
             'cel-koniec': null,
             'cel-linii-polowa': null,
