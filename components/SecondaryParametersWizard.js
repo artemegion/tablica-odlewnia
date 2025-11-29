@@ -54,20 +54,6 @@ export class SecondaryParametersWizard extends LitElement {
         }
     `;
 
-    /*
-        83L149+2A3=200
-        88L111=240    480
-        82L182=240    480
-        89L106 480
-        89L128+1 500
-        81L170A1 360
-        83L149 155    310
-        83L192 155    310
-        83L150 500
-        89L130+1 500
-        82L244  330
-    */
-
     /**
     * @typedef SecondaryParameters
     * @prop {String} asortyment 
@@ -78,6 +64,7 @@ export class SecondaryParametersWizard extends LitElement {
     * @prop {number} celLiniiKoniec norma
     * @prop {number} brakiPolowa 
     * @prop {number} brakiKoniec 
+    * @prop {number} czyszczenie
     */
 
     /** @type {Array<SecondaryParameters>} */
@@ -90,7 +77,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 180,
             celLiniiKoniec: 360,
             brakiPolowa: 3,
-            brakiKoniec: 3
+            brakiKoniec: 3,
+            czyszczenie: 20
         },
 
         {
@@ -101,7 +89,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 180,
             celLiniiKoniec: 360,
             brakiPolowa: 3,
-            brakiKoniec: 3
+            brakiKoniec: 3,
+            czyszczenie: 20
         },
 
         {
@@ -112,7 +101,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 245,
             celLiniiKoniec: 490,
             brakiPolowa: 4,
-            brakiKoniec: 4
+            brakiKoniec: 4,
+            czyszczenie: 20
         },
 
         {
@@ -123,7 +113,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 245,
             celLiniiKoniec: 490,
             brakiPolowa: 4,
-            brakiKoniec: 4
+            brakiKoniec: 4,
+            czyszczenie: 20
         },
 
         {
@@ -134,7 +125,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 164,
             celLiniiKoniec: 330,
             brakiPolowa: 3,
-            brakiKoniec: 3
+            brakiKoniec: 3,
+            czyszczenie: 20
         },
 
         {
@@ -145,7 +137,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 170,
             celLiniiKoniec: 340,
             brakiPolowa: 3,
-            brakiKoniec: 3
+            brakiKoniec: 3,
+            czyszczenie: 20
         },
 
         {
@@ -156,7 +149,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 250,
             celLiniiKoniec: 500,
             brakiPolowa: 4,
-            brakiKoniec: 4
+            brakiKoniec: 4,
+            czyszczenie: 20
         },
 
         {
@@ -167,7 +161,8 @@ export class SecondaryParametersWizard extends LitElement {
             celLiniiPolowa: 170,
             celLiniiKoniec: 340,
             brakiPolowa: 3,
-            brakiKoniec: 3
+            brakiKoniec: 3,
+            czyszczenie: 20
         }
     ]
 
@@ -233,25 +228,51 @@ export class SecondaryParametersWizard extends LitElement {
         let b1 = document.getElementById("parameters-wizard-form_bramka_1").checked;
         let b2 = document.getElementById("parameters-wizard-form_bramka_2").checked;
 
-        let multiplier;
+        let bramki;
         if (b1) {
-            multiplier = 1;
+            bramki = 1;
         }
         if (b2) {
-            multiplier = 2;
+            bramki = 2;
         }
 
-        if (multiplier != null) {
+        if (bramki != null) {
+            this.state.sheet.setValue("bramki", bramki);
+
             this.state.sheet.setValue("takt", asortyment.takt);
 
-            this.state.sheet.setValue("cel-polowa", asortyment.celPolowa * multiplier);
-            this.state.sheet.setValue("cel-koniec", asortyment.celKoniec * multiplier);
+            this.state.sheet.setValue("cel-polowa", asortyment.celPolowa * bramki);
+            this.state.sheet.setValue("cel-koniec", asortyment.celKoniec * bramki);
 
-            this.state.sheet.setValue("cel-linii-polowa", asortyment.celLiniiPolowa * multiplier);
-            this.state.sheet.setValue("cel-linii-koniec", asortyment.celLiniiKoniec * multiplier);
+            this.state.sheet.setValue("cel-linii-polowa", asortyment.celLiniiPolowa * bramki);
+            this.state.sheet.setValue("cel-linii-koniec", asortyment.celLiniiKoniec * bramki);
 
-            this.state.sheet.setValue("braki-polowa", asortyment.brakiPolowa * multiplier);
-            this.state.sheet.setValue("braki-koniec", asortyment.brakiKoniec * multiplier);
+            this.state.sheet.setValue("braki-polowa", asortyment.brakiPolowa * bramki);
+            this.state.sheet.setValue("braki-koniec", asortyment.brakiKoniec * bramki);
+        }
+
+        if (bramki >= 1) {
+            this.state.sheet.setValue("czyszczenie-b1-polowa", asortyment.czyszczenie);
+            this.state.sheet.setValue("czyszczenie-b1-koniec", asortyment.czyszczenie);
+        } else {
+            this.state.sheet.setValue("czyszczenie-b1-polowa", 0);
+            this.state.sheet.setValue("czyszczenie-b1-koniec", 0);
+        }
+
+        if (bramki >= 2) {
+            this.state.sheet.setValue("czyszczenie-b2-polowa", asortyment.czyszczenie);
+            this.state.sheet.setValue("czyszczenie-b2-koniec", asortyment.czyszczenie);
+        } else {
+            this.state.sheet.setValue("czyszczenie-b2-polowa", 0);
+            this.state.sheet.setValue("czyszczenie-b2-koniec", 0);
+        }
+
+        if (this.state.sheet.getValue('sztuki-we-wozku-polowa') === 0) {
+            this.state.sheet.setValue('sztuki-we-wozku-polowa', asortyment.celLiniiPolowa);
+        }
+
+        if (this.state.sheet.getValue('sztuki-we-wozku-koniec') === 0) {
+            this.state.sheet.setValue('sztuki-we-wozku-koniec', asortyment.celLiniiKoniec);
         }
 
         this.fold();
